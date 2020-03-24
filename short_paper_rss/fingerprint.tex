@@ -1,0 +1,49 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Identification Through Interaction}
+\author{James Staley and Elaine Short}
+\date{\vspace{-1em}}
+
+\usepackage{natbib}
+\usepackage{graphicx}
+
+\begin{document}
+
+\maketitle
+
+% for final report only
+%\begin{abstract}
+%A one paragraph high level description of the work. The abstract is typically the first thing someone would read from the paper before deciding whether to continue reading and hence, serves as an advertisement to the reader to read the whole paper. 
+%\end{abstract}
+
+\section{Introduction}
+
+Why do we care?\\
+
+Recognizing individuals is critical to forming strong relationships. Person identification is primarily accomplished with face or voice recognition, but these modalities are sensitive to environmental conditions that make them unreliable in many industry applications \footnote{Some applications, like Amazon's Smart Speaker, can get around this with hardware design and big-data enabled machine learning, but this is not possible for most organizations.}. Alternate identification schemes, like gait detection, require the user's full body to be recorded for multiple striding frames \cite{liang_wang_silhouette_2003}\cite{han_individual_2006}. It's unreasonable to expect every piece interactive technology to implement robust person identification systems with these restrictions in mind. However, most embodied piece of interactive technology can benefit from remembering previous interactions with individual users, and so a more reliable, scalable person recognition scheme is needed. 
+
+This paper attempts to implement an alternate identification system that can be used with any interactive device by using the interaction itself to better recognize individuals. We build upon previous work in open-set recognition to accomplish this, and extend that work to use time-series interaction data. 
+
+TODO: It works and then I write a paragraph about how well it works.
+
+\section{Background Related Work}
+
+Open set recognition is the problem of recognizing instances of classes of objects without knowing the classifications of all candidate objects. It brings the classification problem to the real world, where the objects present are dynamic and potentially novel examples are possible at any time. "It is somewhat reasonable to assume we can gather examples of the positive class, but the number and variety of 'negatives' is not well modelled"\cite{scheirer_toward_2013}. Open set recognition has primarily been examined in computer vision object and face recognition using linear SVMs \cite{scheirer_toward_2013} \cite{bendale_towards_2015}, where its useful to introduce the concept of "open space risk" -- a metric that increases as a sample is on the correct side, but further from, the SVM boundary plane. Scheirer et al. \cite{scheirer_toward_2013} addresses this by introducing a second plane to the SVM that attempts to put a bounding on the "backside" of a classified group, and examines how this method varies in effectiveness with the openness \footnote{Where openness is a measure of how many more classes there are at test time than at training time.} of the problem. Further work is done on recognizing and categorizing novel classes \cite{bendale_towards_2015} as well as using probabilistic techniques and nonlinear SVM kernels to classify and recognize different categories \cite{scheirer_probability_2014} \cite{jain_multi-class_2014}.
+
+\section{Technical Approach / Methodology / Theoretical Framework}\label{formalization}
+
+\subsection{Open Set Formalization}
+
+\subsection{AMI Corpus}
+
+% for final report
+%A detailed description of your problem (with math, notation, algorithms, figures, etc.). Use footnotes to cite links to your code or videos\footnote{All developed source code for this project is available at ...}
+
+\section{Results}
+
+\section{Discussion}
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}

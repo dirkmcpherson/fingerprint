@@ -1,0 +1,40 @@
+\begin{thebibliography}{1}
+
+\bibitem{bendale_towards_2015}
+Abhijit Bendale and Terrance Boult.
+\newblock Towards open world recognition.
+\newblock In {\em Proceedings of the {IEEE} conference on computer vision and
+  pattern recognition}, pages 1893--1902, 2015.
+
+\bibitem{han_individual_2006}
+J.~Han and B.~Bhanu.
+\newblock Individual recognition using gait energy image.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  28(2):316--322, February 2006.
+
+\bibitem{jain_multi-class_2014}
+Lalit~P Jain, Walter~J Scheirer, and Terrance~E Boult.
+\newblock Multi-class open set recognition using probability of inclusion.
+\newblock In {\em European {Conference} on {Computer} {Vision}}, pages
+  393--409. Springer, 2014.
+
+\bibitem{liang_wang_silhouette_2003}
+{Liang Wang}, {Tieniu Tan}, {Huazhong Ning}, and {Weiming Hu}.
+\newblock Silhouette analysis-based gait recognition for human identification.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  25(12):1505--1518, December 2003.
+
+\bibitem{scheirer_toward_2013}
+W.~J. Scheirer, A.~de~Rezende Rocha, A.~Sapkota, and T.~E. Boult.
+\newblock Toward {Open} {Set} {Recognition}.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  35(7):1757--1772, July 2013.
+
+\bibitem{scheirer_probability_2014}
+Walter~J Scheirer, Lalit~P Jain, and Terrance~E Boult.
+\newblock Probability models for open set recognition.
+\newblock {\em IEEE transactions on pattern analysis and machine intelligence},
+  36(11):2317--2324, 2014.
+\newblock Publisher: IEEE.
+
+\end{thebibliography}
