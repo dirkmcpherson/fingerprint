@@ -3,44 +3,44 @@ Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
 The top-level auxiliary file: fingerprint.aux
 The style file: plain.bst
 Database file #1: references.bib
-You've used 6 entries,
+You've used 3 entries,
             2118 wiz_defined-function locations,
-            539 strings with 5089 characters,
-and the built_in function-call counts, 2561 in all, are:
-= -- 264
-> -- 108
-< -- 2
-+ -- 42
-- -- 36
-* -- 197
-:= -- 401
-add.period$ -- 20
-call.type$ -- 6
-change.case$ -- 36
+            517 strings with 4431 characters,
+and the built_in function-call counts, 1027 in all, are:
+= -- 101
+> -- 43
+< -- 0
++ -- 17
+- -- 14
+* -- 87
+:= -- 178
+add.period$ -- 9
+call.type$ -- 3
+change.case$ -- 16
 chr.to.int$ -- 0
-cite$ -- 6
-duplicate$ -- 92
-empty$ -- 200
-format.name$ -- 36
-if$ -- 544
+cite$ -- 3
+duplicate$ -- 33
+empty$ -- 81
+format.name$ -- 14
+if$ -- 204
 int.to.chr$ -- 0
-int.to.str$ -- 6
-missing$ -- 6
-newline$ -- 34
-num.names$ -- 12
-pop$ -- 32
+int.to.str$ -- 3
+missing$ -- 3
+newline$ -- 18
+num.names$ -- 6
+pop$ -- 10
 preamble$ -- 1
-purify$ -- 30
+purify$ -- 13
 quote$ -- 0
-skip$ -- 72
+skip$ -- 22
 stack$ -- 0
-substring$ -- 220
-swap$ -- 28
-text.length$ -- 2
+substring$ -- 83
+swap$ -- 3
+text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 24
+type$ -- 12
 warning$ -- 0
-while$ -- 26
-width$ -- 7
-write$ -- 71
+while$ -- 11
+width$ -- 4
+write$ -- 35

@@ -2,11 +2,17 @@
 \usepackage[utf8]{inputenc}
 
 \title{Identification Through Interaction}
-\author{James Staley and Elaine Short}
+\author{NO AUTHORS} %(TODO: Elaine or Matthias last author? Up to Matthias, send over before submission. )
 \date{\vspace{-1em}}
+
 
 \usepackage{natbib}
 \usepackage{graphicx}
+\usepackage{color}
+\usepackage[normalem]{ulem}
+\newcommand{\elaine}[1]{{\textcolor[rgb]{0.1,0.4,0.6}{[ESS: {\it #1}]}}}
+\newcommand{\delete}[1]{{\textcolor[rgb]{0.75,0.1,0}{\sout{#1}}}}
+\newcommand{\meta}[1]{{\textcolor[rgb]{0.1,0.7,0.2}{[JSS: {\it #1}]}}}
 
 \begin{document}
 
@@ -18,22 +24,97 @@
 %\end{abstract}
 
 \section{Introduction}
+\elaine{you need to include matthias as an author, even if he's not last author, and we need to run the paper by him before submitting}
+Why do we care? Why is it hard? Why can we do it?\\
 
-Why do we care?\\
+Recognizing individuals is critical to forming strong relationships. Person identification is primarily accomplished with face or voice recognition, but these modalities are sensitive to environmental conditions that make them unreliable in many industry applications. Some applications, like Amazon's Smart Speaker, can get around this with hardware design and big-data enabled machine learning, but this is not possible for many organizations and may not be a desired feature from the user's perspective. Robust voice and face recognition allow a user to be tracked across multiple contexts, but identification through interaction isn't likely to be translatable in the same way, giving the user the benefits of personalized interaction without restricting their right to privacy. \meta{Putting this argument here makes sense given the context, but it seems weird to do it before the topic of the paper is introduced. Should I just make the footnote longer?}
 
-Recognizing individuals is critical to forming strong relationships. Person identification is primarily accomplished with face or voice recognition, but these modalities are sensitive to environmental conditions that make them unreliable in many industry applications \footnote{Some applications, like Amazon's Smart Speaker, can get around this with hardware design and big-data enabled machine learning, but this is not possible for most organizations.}. Alternate identification schemes, like gait detection, require the user's full body to be recorded for multiple striding frames \cite{liang_wang_silhouette_2003}\cite{han_individual_2006}. It's unreasonable to expect every piece interactive technology to implement robust person identification systems with these restrictions in mind. However, most embodied piece of interactive technology can benefit from remembering previous interactions with individual users, and so a more reliable, scalable person recognition scheme is needed. 
+% \footnote{Some applications, like Amazon's Smart Speaker, can get around this with hardware design and big-data enabled machine learning, but this is not possible for most organizations.}. \elaine{I think there's an ethical argument to be made here as well, that identifying someone in an interaction isn't likely to translate across contexts -- which is actually a good thing.  Think about the ways in which someone might have different personas in different contexts -- it's actually good not to necessarily be able to link them.} 
 
-This paper attempts to implement an alternate identification system that can be used with any interactive device by using the interaction itself to better recognize individuals. We build upon previous work in open-set recognition to accomplish this, and extend that work to use time-series interaction data. 
+Other identification schemes, like gait detection, require the user's full body to be recorded for multiple striding frames \cite{liang_wang_silhouette_2003}\cite{han_individual_2006}. It's unreasonable to expect every piece of interactive technology to implement robust person identification systems with these restrictions in mind. However, most embodied piece of interactive technology can benefit from remembering previous interactions with individual users, and so a more reliable, scalable person recognition scheme is needed. 
 
-TODO: It works and then I write a paragraph about how well it works.
+This paper attempts to implement the groundwork for an alternate identification system that can be used with any socially interactive device \elaine{I'd suggest you scope this a little bit more -- maybe socially interactive?}\meta{Added 'groundwork for' and 'socially'} by using the interaction itself to better recognize individuals. Prior work in open-set recognition has only used static features of the user, but a key feature of an interaction is that it includes behaviors that are embedded in time. In this work we present a novel method for doing open-set recognition on time-series data, and discuss how this work can be extended to address the problem of recognition through interaction. We evaluate our system on a preexisting dataset and discuss how it could be extended in a case where the agent is able to take action. 
+
+\meta{Alternate for simple SVM implementation}
+Prior work in open-set recognition...are embedded in time. In this work we present a novel method for user recognition on time-series data with a support vector machine, and discuss how...recognition through interaction and open-set recognition. We evaluate our system...is able to take action. 
+
+
+
+% We build upon previous work in open-set recognition to accomplish this, and extend that work to use time-series interaction data. \elaine{Rephrase to be something more like "Prior work in open-set recognition has only used static features of the user, but a key feature of an interaction is that it includes behaviors that are embedded in time.  In this work we present a novel method for doing open-set recognition on time-series data, and discuss how this can be extended to address the problem of recognition from interaction. -- we evaluate it on a preexisting dataset and discuss how it could be extended in a case where the agent is able to take action. -- OR -- in this work we show that these techniques can be effectively applied to time-series data and discuss how the problem can be extended if the agent can take actions."}
+
+\elaine{note that this specifies what sub-part of the problem you're addressing; if you want to address a different sub-part, you'll need to phrase it differently}
+
+% -- if you know how to do all the things. Put together the part that exist to accomplish the task, discuss what problems are unsolved w/r to system -- 
+
+% Knowing that I have a bunch of events of different types in time, without knowing the types, can we use them to recognize the people. 
+
+% 1) Cut things into snippets, can you identify people between snippets? Training set, Test set, Validation set. 
+
+% 2) Between interactions, can you recognize that these are all new people? 
+
+% Hand-waving timing of events. How do you turn an event that takes place over time into a datapoint that an SVM can handle. **Distance are further in higher dimensions***
+
+% TODO: It works and then I write a paragraph about how well it works.
+
+% 3) *IDEA* Turn temporal patterns into image patterns and then analyze with computer vision. Like looking at a fingerprint. 
+
+
+% -- 1. Turn the time-series data into something an SVM can handle. 2. show if you can classify people. -- show preliminary results, talk about why its hard, talk about what hasn't been done yet, talk about how the robot can elicit interaction to identify, EXPLICITLY tie this into robots in the world. 
+
+% FIRST GOAL: finger-print and a couple graphs. 
 
 \section{Background Related Work}
 
-Open set recognition is the problem of recognizing instances of classes of objects without knowing the classifications of all candidate objects. It brings the classification problem to the real world, where the objects present are dynamic and potentially novel examples are possible at any time. "It is somewhat reasonable to assume we can gather examples of the positive class, but the number and variety of 'negatives' is not well modelled"\cite{scheirer_toward_2013}. Open set recognition has primarily been examined in computer vision object and face recognition using linear SVMs \cite{scheirer_toward_2013} \cite{bendale_towards_2015}, where its useful to introduce the concept of "open space risk" -- a metric that increases as a sample is on the correct side, but further from, the SVM boundary plane. Scheirer et al. \cite{scheirer_toward_2013} addresses this by introducing a second plane to the SVM that attempts to put a bounding on the "backside" of a classified group, and examines how this method varies in effectiveness with the openness \footnote{Where openness is a measure of how many more classes there are at test time than at training time.} of the problem. Further work is done on recognizing and categorizing novel classes \cite{bendale_towards_2015} as well as using probabilistic techniques and nonlinear SVM kernels to classify and recognize different categories \cite{scheirer_probability_2014} \cite{jain_multi-class_2014}.
+TODO: Don't write a book report. Only bring things up as they relate to our formalization of the problem. (1) work on multi-class SVM and where we fit in. (2) How multi-class SVM extends to open-set recognition and applying our strategy to the formalization of that extension. 
+
+% Open set recognition is the problem of recognizing instances of classes of objects without knowing the classifications of all candidate objects. It brings the classification problem to the real world, where the objects present are dynamic and potentially novel examples are possible at any time. "It is somewhat reasonable to assume we can gather examples of the positive class, but the number and variety of 'negatives' is not well modelled"(TODO: Remove Quotes)\cite{scheirer_toward_2013}. Open set recognition has primarily been examined in computer vision object and face recognition using linear SVMs \cite{scheirer_toward_2013} \cite{bendale_towards_2015}, where its useful to introduce the concept of "open space risk" -- a metric that increases as a sample is on the correct side, but further from, the SVM boundary plane. Scheirer et al. \cite{scheirer_toward_2013} addresses this by introducing a second plane to the SVM that attempts to put a bounding on the "backside" of a classified group, and examines how this method varies in effectiveness with the openness \footnote{Where openness is a measure of how many more classes there are at test time than at training time.} of the problem. Further work is done on recognizing and categorizing novel classes \cite{bendale_towards_2015} as well as using probabilistic techniques and nonlinear SVM kernels to classify and recognize different categories \cite{scheirer_probability_2014} \cite{jain_multi-class_2014}.
+
+\subsection{Problem Formalization}
+
+We aim to identify a set of users $u_n \subseteq U$, where the number of users in the set, and so $n$, are unknown. Each user exhibits interactive behaviors that are measurable as $k$ time-series signals.
+
+\begin{equation}
+    b^k \subseteq B_n
+\end{equation}
+
+\meta{Try to show more obviously that these are time series signals.}
+\begin{equation}
+    [b^k_0 ... b^k_f] \in b^k
+\end{equation}
+
+Where $b^k$ is the time-series interactive signal, and $b^k_t$ indicates whether the interactive behavior is present at time-step $t$. We need to take the time-series interactive behavior and convert it into an SVM classifiable signal, so $b^k$ is converted into a discrete set of $i$ features in $d^k$.
+
+\begin{equation}
+    [d^k_0 ... d^k_i] \in d^k
+\end{equation}
+
+Where each entry in $d^k$ is an extracted feature that describes an aspect of the time-series signal $b^k$. We can then feed the extracted features into $n$ one-against-all Support Vector Machine
+which finds the hyperplane that separates the target class from the rest of the data by finding $w$ and $b$ in the following equation. \cite{abe_analysis_2003}
+
+\begin{equation}
+    D(x) = w^tx + b
+\end{equation}
+
+Where $w$ is a $k*i$ (the number of time-series signals times the number of features extracted from each signal) dimensional vector and $b$ is a scalar. These values are found by training on a labelled subset of the data. 
 
 \section{Technical Approach / Methodology / Theoretical Framework}\label{formalization}
 
-\subsection{Open Set Formalization}
+\meta{shorthand brainstorming, needs editing}
+
+Signal making up $B_n$ are handled without taking the meaning of the signal into account. We want to build a system that generalizes across interaction types. Each signal in $B_n$ occurs over a time period. In a given segment of the interaction each signal will be present or absent at each timestep. Using only this information we have can produce a range of potentially useful features.
+
+\begin{enumerate}
+    \item Active Ratio - For what percentage of the snippet was the signal active.
+    \item Total oscillations - How many times did the signal toggle from on to off (normalized by snippet length). 
+    \item NEED a measure that connects different $b^k$s and/or catches coordinated transitions between signals. Encodable by an SVM? You could do a transition matrix (e.g. $b^0$ turned off within $epsilon$ seconds of $b^1$ turning on $x$ times in this snippet). But that's a $k^2$ on its own.
+\end{enumerate}
+
+The above potential signals can be compared to the average value 
+
+\meta{SLAUNCHWISE} \\ 
+\meta{Frequency domain - connecting different signals. Spectral analysis.} \\
+\meta{Covariance matrix - Eigenvectors / Eigenvalues and how they relate different variables to each other.}
+\meta{ROC curves for each combinations}
 
 \subsection{AMI Corpus}
 
