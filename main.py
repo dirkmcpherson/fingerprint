@@ -3,14 +3,19 @@ import sys
 import glob
 import xml.etree.ElementTree as ET
 import numpy as np
+import random
 from IPython import embed
+from sklearn import svm
 
 import matplotlib
 matplotlib.use("Qt5Agg")
 from matplotlib import pyplot as plt
 
+import featureExtractor as feature
 # Tag name constants in separate file
 from TagNames import *
+
+DEBUG=True
 
 def main():
     glob.glob("")
@@ -55,8 +60,6 @@ def formatHeadDataForPlotting(head, placeHolderValue=1):
         else:
             timeSpansForSignalType[signalType] = []
 
-
-
     # assumed to be in order
     return plotTimespansAsBinary(placeHolderValue)
 
@@ -90,7 +93,7 @@ def plotTimespansAsBinary(ranges, placeHolderValue=1.0):
 # Take the data out of xml format and store it as an ordered list of tuples (start_time, end_time, type). Where the entry for type looks in the relevent subfield for the interaction modality (e.g. 'form' for movement)
 def reformatData(data, subType=None):
     ret = []
-    excludedTypes = [NO_COMM_HEAD, OFF_CAMERA]
+    excludedTypes = [NO_COMM_HEAD, OFF_CAMERA, SIT]
     for d in data:
         ts = d.get(START_TIME)
         tf = d.get(END_TIME)
@@ -145,6 +148,28 @@ def aggregateDataForUser(uid):
 
     words = tmp
     return {WORDS: words, MOVEMENT: movement, HEAD: head}
+
+def dataFromRange(start_time, end_time, allDataAllUsers):
+    ret = dict()
+    for i, (key, allData) in enumerate(allDataAllUsers.items()):
+        # go through and pluck out data between t0 and tf
+        dataTypes = dict()
+        for i, (dataTypeName, val) in enumerate(allData.items()):
+            subset = []
+            for entry in val:
+                t0 = entry[0]
+                tf = entry[1]
+                if (t0 >= start_time and tf <= end_time):
+                    subset.append(entry)
+                # catch the edge cases where an interval cuts through a start or end time
+                elif (t0 < start_time and tf > start_time):
+                    subset.insert(0, (start_time, tf, entry[2]) ) 
+                elif (t0 < end_time and tf > end_time):
+                    subset.append( (t0, end_time, entry[2]) ) # fill in with an entry that goes between the time periods with the signaltype
+            dataTypes[dataTypeName] = subset
+        ret[key] = dataTypes
+
+    return ret
 
 # print out the data available for a user given its dictionary
 def printDataDescription(uid, allData):
@@ -218,10 +243,91 @@ if __name__ == "__main__":
 
 
 
-    
+        # Break up data into a bunch of snippets
+        meetingDuration = data['A'][MOVEMENT][-1][1] # End time of last sample
+        numSnippets = 8
+        trainSize = 5
+        testSize = numSnippets - 2
+        results = np.zeros((4,4))
+        
+        numRuns = 100
+        for i in range(numRuns):
+            snippets = []
+            t0 = 0
+            tf = None
+            for i in range(numSnippets):
+                tf = (meetingDuration / numSnippets) * (i+1)
+                snippets.append(dataFromRange(t0, tf, data))
+                t0 = tf
+
+            trainingSet = []
+            testingSet = []
+
+            for i in range(trainSize):
+                idx = random.randint(0, len(snippets) - 1)
+                selected = snippets[idx]
+                trainingSet.append(selected)
+                snippets.remove(selected)
+
+            testingSet = snippets
+
+            mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
+            mapIDToLetter = {0:'A', 1:'B', 2:'C', 3:'D'}
+            clf = svm.SVC(decision_function_shape='ovo')
+
+            #SVM fit will forget everything it knew, so you have to average the features from all the sets for training and testing
+            X = []
+            Y = []
+            for snippet in trainingSet:
+                for i, (k,v) in enumerate(snippet.items()):
+                    X.append(feature.extractFeature(v, feature.averageOn))
+                    Y.append(mapLetterToID[k])
+
+            clf.fit(X,Y)
+
+            y_true = []
+            y_pred = []
+            for snippet in testingSet:
+                for i, (k,v) in enumerate(snippet.items()):
+                    x_pred = [feature.extractFeature(v, feature.averageOn)]
+                    y_pred.append(clf.predict(x_pred))
+                    y_true.append(k)
+
+            # y_pred = [mapIDToLetter[entry[0]] for entry in y_pred]
+            y_true = [mapLetterToID[entry] for entry in y_true]
+
+            for truth, prediction in zip(y_true, y_pred):
+                results[(truth,prediction)] += 1
 
 
         embed()
+        print(results)
+        # firstHalf = dataFromRange(0, 800., data)
+        # secondHalf = dataFromRange(801, 1020, data)
+        # mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
+        # X = []
+        # Y = []
+        # for i, (k,v) in enumerate(firstHalf.items()):
+        #     allData = v
+        #     features = feature.extractFeature(allData, feature.averageOn)
+        #     print("Features for {} : {}".format(k,features))
+        #     X.append(features)
+        #     Y.append(mapLetterToID[k])
+
+        # clf = svm.SVC(decision_function_shape='ovo')
+        # clf.fit(X,Y)
+
+        # x_pred = []
+        # y_pred = None
+        # for i, (k,v) in enumerate(secondHalf.items()):
+        #     allData = v
+        #     features = feature.extractFeature(allData, feature.averageOn)
+        #     x_pred.append(features)
+        # y_pred = clf.predict(x_pred)
+
+        # embed()
+
+
         # # Example of how to parse a file
         # fn = users["A"][0]
         # root = ET.parse(fn).getroot()
@@ -233,4 +339,4 @@ if __name__ == "__main__":
 
 
         # plt.plot(xs,ys)
-        plt.show()
+        # plt.show()
