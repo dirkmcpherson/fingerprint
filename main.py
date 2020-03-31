@@ -4,6 +4,7 @@ import glob
 import xml.etree.ElementTree as ET
 import numpy as np
 import random
+import time
 from IPython import embed
 from sklearn import svm
 
@@ -40,54 +41,36 @@ def dataForUser(uid, dataType, subtype=None):
         ret.append([entry for entry in root.findall(subtype)])
     return ret
 
-def formatHeadDataForPlotting(head, placeHolderValue=1):
-    # ranges = []
-    timeSpansForSignalType = dict()
-    skippedNoComms = 0
-    for h in head:
-        ts = h.get(START_TIME)
-        tf = h.get(END_TIME)
-        signalType = h.get(TYPE)
-        if (ts is None) or (tf is None):
-            continue
-        elif (signalType is not None) and (signalType == NO_COMM_HEAD):
-            skippedNoComms += 1
-            continue
-
-        timespan = (float(ts), float(tf))
-        if (signalType in timeSpansForSignalType):
-            timeSpansForSignalType[signalType].append(timespan)
-        else:
-            timeSpansForSignalType[signalType] = []
-
-    # assumed to be in order
-    return plotTimespansAsBinary(placeHolderValue)
-
-def plotTimespansAsBinary(ranges, placeHolderValue=1.0):
-    # assumed to be in order
-    earliest = ranges[0][0]
-    latest = ranges[-1][1]
-
-    numSamples = 2 * len(ranges)
-    inc = latest / numSamples
-    xs = [i*inc for i in range(numSamples)]
+def plotTimespansAsBinary(userData, placeHolderValue=1.0):
+    xs = []
     ys = []
+    numItems = float(len(userData.keys()))
+    numSamples = 2000
+    mint, maxt = userData[WORDS][0][0], userData[WORDS][-1][1]
+    x = np.arange(mint, maxt, 0.5)
+    for i, (k,dataStream) in enumerate(userData.items()):
+        y = []
+        y_val = (i+1) / numItems
 
-    rangeIdx = 0
-    targetRange = ranges[rangeIdx]
-    for x in xs:
-        y = -1
-        # if the x doesn't fall inside a described range, its 0
-        while (x > targetRange[1]):
-            rangeIdx += 1
-            targetRange = ranges[rangeIdx]
+        rangeIdx = 0
+        targetRange = dataStream[rangeIdx]
 
-        if (x < targetRange[0]):
-            y = 0
-        else:
-            y = placeHolderValue
+        for t in x:
+            tmp = -1
+            while(t > targetRange[1]):
+                rangeIdx += 1
+                targetRange = dataStream[rangeIdx]
 
+            if (targetRange[2] == NO_SIGNAL):
+                tmp = 0
+            else:
+                tmp = y_val
+            y.append(tmp)
+
+        print("%s has %d entries" % (k, len([_ for _ in y if _ > 0])))
+        xs.append(x)
         ys.append(y)
+
     return xs, ys
 
 # Take the data out of xml format and store it as an ordered list of tuples (start_time, end_time, type). Where the entry for type looks in the relevent subfield for the interaction modality (e.g. 'form' for movement)
@@ -147,7 +130,35 @@ def aggregateDataForUser(uid):
         tmp.append( (tmp[-1][1], maxT, NO_SIGNAL))
 
     words = tmp
-    return {WORDS: words, MOVEMENT: movement, HEAD: head}
+
+    # Further split HEAD data
+    if (False):
+        head_default = []
+        head_nod = []
+        head_shake = []
+
+        for entry in head:
+            gestureType = entry[2]
+            negativePlaceholder = (entry[0], entry[1], NO_SIGNAL)
+            if (gestureType == NO_SIGNAL):
+                head_default.append(entry)
+                head_nod.append(entry)
+                head_shake.append(entry)
+            elif (gestureType == NOD):
+                head_nod.append(entry)
+                head_shake.append(negativePlaceholder)
+                head_default.append(negativePlaceholder)
+            elif (gestureType == SHAKE):
+                head_shake.append(entry)
+                head_default.append(negativePlaceholder)
+                head_nod.append(negativePlaceholder)
+            else:
+                head_default.append(entry)
+                head_shake.append(negativePlaceholder)
+                head_nod.append(negativePlaceholder)
+        return {WORDS: words, MOVEMENT: movement, HEAD: head_default, HEAD_NOD: head_nod, HEAD_SHAKE: head_shake}
+    else:
+        return {WORDS: words, MOVEMENT: movement, HEAD: head}
 
 def dataFromRange(start_time, end_time, allDataAllUsers):
     ret = dict()
@@ -234,20 +245,26 @@ if __name__ == "__main__":
         for uid in users:
             data[uid] = aggregateDataForUser(uid)
             printDataDescription(uid, data[uid])
-            # words = dataForUser(uid, WORDS, 'w')[0]
-            # xs, ys = formatTimespanDataForPlotting(words, placeHolderValue=(idx*0.25))
-            # head = dataForUser(uid, HEAD)[0]
-            # xs, ys = formatHeadDataForPlotting(head, placeHolderValue=(idx*0.25))
-            # plt.scatter(xs,ys)
-            # idx += 1
 
+        # Plot the profiles of each users
+        PLOT = True
+        if PLOT:
+            fig, ax = plt.subplots(len(data.keys()))
+            plotIdx = 0
+            for uid in data.keys():
+                xs, ys = plotTimespansAsBinary(data[uid])
+                numPlots = len(xs)
+                for j in range(len(xs)):
+                    ax[plotIdx].scatter(xs[j],ys[j])
+                plotIdx += 1
+            plt.show()
 
-
+        
         # Break up data into a bunch of snippets
         meetingDuration = data['A'][MOVEMENT][-1][1] # End time of last sample
         numSnippets = 8
-        trainSize = 5
-        testSize = numSnippets - 2
+        trainSize = 6
+        testSize = numSnippets - trainSize
         results = np.zeros((4,4))
         
         numRuns = 100
@@ -273,14 +290,18 @@ if __name__ == "__main__":
 
             mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
             mapIDToLetter = {0:'A', 1:'B', 2:'C', 3:'D'}
-            clf = svm.SVC(decision_function_shape='ovo')
+
+
+            # clf = svm.SVC(decision_function_shape='ovo')
+            clf = svm.LinearSVC()
+            f_fnc = feature.numberOfOccurances # feature.averageOn
 
             #SVM fit will forget everything it knew, so you have to average the features from all the sets for training and testing
             X = []
             Y = []
             for snippet in trainingSet:
                 for i, (k,v) in enumerate(snippet.items()):
-                    X.append(feature.extractFeature(v, feature.averageOn))
+                    X.append(feature.extractFeature(v, f_fnc))
                     Y.append(mapLetterToID[k])
 
             clf.fit(X,Y)
@@ -289,7 +310,7 @@ if __name__ == "__main__":
             y_pred = []
             for snippet in testingSet:
                 for i, (k,v) in enumerate(snippet.items()):
-                    x_pred = [feature.extractFeature(v, feature.averageOn)]
+                    x_pred = [feature.extractFeature(v, f_fnc)]
                     y_pred.append(clf.predict(x_pred))
                     y_true.append(k)
 
@@ -300,7 +321,6 @@ if __name__ == "__main__":
                 results[(truth,prediction)] += 1
 
 
-        embed()
         print(results)
         # firstHalf = dataFromRange(0, 800., data)
         # secondHalf = dataFromRange(801, 1020, data)

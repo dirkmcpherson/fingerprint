@@ -14,6 +14,14 @@ def averageOn(data):
 
     return (timeOn / duration)
 
+def numberOfOccurances(data):
+    num = 0
+    for d in data:
+        if (d[2] != NO_SIGNAL):
+            num += 1
+
+    return num / 1000
+
 
 # apply an feature extract to all streams of a user
 def extractFeature(allData, feature_fnc):
