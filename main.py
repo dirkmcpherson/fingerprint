@@ -44,11 +44,15 @@ def dataForUser(uid, dataType, subtype=None):
 def plotTimespansAsBinary(userData, placeHolderValue=1.0):
     xs = []
     ys = []
+    labels = []
     numItems = float(len(userData.keys()))
     numSamples = 2000
     mint, maxt = userData[WORDS][0][0], userData[WORDS][-1][1]
     x = np.arange(mint, maxt, 0.5)
     for i, (k,dataStream) in enumerate(userData.items()):
+        if len(labels) < len(userData.keys()):
+            labels.append(k)
+
         y = []
         y_val = (i+1) / numItems
 
@@ -71,43 +75,65 @@ def plotTimespansAsBinary(userData, placeHolderValue=1.0):
         xs.append(x)
         ys.append(y)
 
-    return xs, ys
+    return xs, ys, labels
 
 # Take the data out of xml format and store it as an ordered list of tuples (start_time, end_time, type). Where the entry for type looks in the relevent subfield for the interaction modality (e.g. 'form' for movement)
-def reformatData(data, subType=None):
+def reformatData(allData, subType=None):
     ret = []
     excludedTypes = [NO_COMM_HEAD, OFF_CAMERA, SIT]
-    for d in data:
-        ts = d.get(START_TIME)
-        tf = d.get(END_TIME)
-        signalType = d.get(TYPE)
-        if (ts is None) or (tf is None):
-            continue
-        elif (signalType is None) or (signalType in excludedTypes): # words have no entry for none, movement and head have specific types that indicate no info 
-            signalType = NO_SIGNAL
 
-        # If we have a subtype, classify using that instead of type
-        if (signalType is not NO_SIGNAL) and (subType is not None):
-            # Sometimes signals that should have subtypes just dont.
-            subTypeSignal = d.get(subType)
-            signalType = subTypeSignal if (subTypeSignal is not None) else signalType
+    for dataset in allData:
+        print(len(ret))
+        for d in dataset:
+            ts = d.get(START_TIME)
+            tf = d.get(END_TIME)
+            signalType = d.get(TYPE)
+            if (ts is None) or (tf is None):
+                continue
+            elif (signalType is None) or (signalType in excludedTypes): # words have no entry for none, movement and head have specific types that indicate no info 
+                signalType = NO_SIGNAL
 
-            if (signalType is None):
-                print("IT AINT RIGHT!! {}".format(subType))
+            # If we have a subtype, classify using that instead of type
+            if (signalType is not NO_SIGNAL) and (subType is not None):
+                # Sometimes signals that should have subtypes just dont.
+                subTypeSignal = d.get(subType)
+                signalType = subTypeSignal if (subTypeSignal is not None) else signalType
 
-        ret.append((float(ts), float(tf), signalType))
+                if (signalType is None):
+                    print("IT AINT RIGHT!! {}".format(subType))
+
+            ret.append((float(ts), float(tf), signalType))
+
+
+    # No go through and reset the times so the set of meetings is one continuous data stream #TODO: Inefficient
+    first = ret[0]
+    entryIdx = 1
+    for i in range(len(ret) - 2):
+        second = ret[entryIdx]
+
+        if (second[0] < first[1]):
+            t = first[1] # add the end time of the previous range to the entry being updated
+            ret[entryIdx] = (t+second[0], t+second[1], second[2])
+
+        first = second
+        entryIdx += 1
+
 
     return ret
 
 # Format all the data for a user as ordered tuples and put it in a dictionary by type
 def aggregateDataForUser(uid):
-    words = dataForUser(uid, WORDS, 'w')[0]
-    head = dataForUser(uid, HEAD)[0]
-    movement = dataForUser(uid, MOVEMENT)[0]
+    words = dataForUser(uid, WORDS, 'w')
+    head = dataForUser(uid, HEAD)
+    movement = dataForUser(uid, MOVEMENT)
 
     words = reformatData(words)
     head = reformatData(head, subType=FORM)
     movement = reformatData(movement)
+
+    # extend the list of meetings into one long list. Entries are in order time starts over at the start of each file.
+    # embed()
+    # return
 
     # Words neesd to be further post processed because it does not include any "no_signal" entries. 
     # Go through and fill in all temporal gaps with NO_SIGNAL. Change existing signals to SPEECH
@@ -159,6 +185,9 @@ def aggregateDataForUser(uid):
         return {WORDS: words, MOVEMENT: movement, HEAD: head_default, HEAD_NOD: head_nod, HEAD_SHAKE: head_shake}
     else:
         return {WORDS: words, MOVEMENT: movement, HEAD: head}
+        # return {WORDS:words}
+        # return {WORDS:words, MOVEMENT: movement}
+        # return {WORDS:words}
 
 def dataFromRange(start_time, end_time, allDataAllUsers):
     ret = dict()
@@ -206,7 +235,11 @@ if __name__ == "__main__":
     users['C'] = []
     users['D'] = []
 
-    searchString = "ES2008a" # ES2008 and ES2009 a-c meetings all have relevent data
+    NUM_USERS = len(users.keys())
+    mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
+    mapIDToLetter = {0:'A', 1:'B', 2:'C', 3:'D'}
+
+    searchString = "ES2009" # ES2008 and ES2009 a-c meetings all have relevent data
     if len(sys.argv) > 1:
         searchString = sys.argv[1]
         print("Using input meeting set.")
@@ -247,25 +280,31 @@ if __name__ == "__main__":
             printDataDescription(uid, data[uid])
 
         # Plot the profiles of each users
-        PLOT = True
+        # embed()
+        PLOT = False
         if PLOT:
             fig, ax = plt.subplots(len(data.keys()))
             plotIdx = 0
             for uid in data.keys():
-                xs, ys = plotTimespansAsBinary(data[uid])
+                xs, ys, labels = plotTimespansAsBinary(data[uid])
                 numPlots = len(xs)
                 for j in range(len(xs)):
                     ax[plotIdx].scatter(xs[j],ys[j])
+
+                if (plotIdx == 0):
+                    ax[plotIdx].legend(labels)
+
                 plotIdx += 1
+            fig.suptitle("Binary Data Streams for Each User.")
             plt.show()
 
         
         # Break up data into a bunch of snippets
-        meetingDuration = data['A'][MOVEMENT][-1][1] # End time of last sample
+        meetingDuration = data['A'][WORDS][-1][1] # End time of last sample
         numSnippets = 8
-        trainSize = 6
+        trainSize = int(np.floor(0.75 * numSnippets))
         testSize = numSnippets - trainSize
-        results = np.zeros((4,4))
+        results = np.zeros((NUM_USERS,NUM_USERS))
         
         numRuns = 100
         for i in range(numRuns):
@@ -284,17 +323,14 @@ if __name__ == "__main__":
                 idx = random.randint(0, len(snippets) - 1)
                 selected = snippets[idx]
                 trainingSet.append(selected)
+                # print("Training set got snippet from %f to %f" % (selected['A'][WORDS][0][0], selected['A'][WORDS][-1][1]))
                 snippets.remove(selected)
 
             testingSet = snippets
 
-            mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
-            mapIDToLetter = {0:'A', 1:'B', 2:'C', 3:'D'}
-
-
-            # clf = svm.SVC(decision_function_shape='ovo')
-            clf = svm.LinearSVC()
-            f_fnc = feature.numberOfOccurances # feature.averageOn
+            clf = svm.SVC(decision_function_shape='ovo')
+            # clf = svm.LinearSVC()
+            f_fnc = feature.averageOn # feature.numberOfOccurances # 
 
             #SVM fit will forget everything it knew, so you have to average the features from all the sets for training and testing
             X = []
@@ -303,6 +339,26 @@ if __name__ == "__main__":
                 for i, (k,v) in enumerate(snippet.items()):
                     X.append(feature.extractFeature(v, f_fnc))
                     Y.append(mapLetterToID[k])
+
+            # embed()
+            AVERAGE_ALL = False # Average all runs so there's just one data point for each user
+            if (AVERAGE_ALL):
+                tmp_x = []
+                tmp_y = []
+                d = dict()
+                for x,y in zip(X,Y):
+                    if y in d:
+                        d[y] = map(sum, zip(d[y], x)) # elementwise sum the two lists
+                    else:
+                        d[y] = x # initialize to first set of features
+
+                numEntries = len(X)
+                for i, (k,v) in enumerate(d.items()):
+                    tmp_x.append([entry / float(numEntries) for entry in v])
+                    tmp_y.append(k)
+
+                X = tmp_x
+                Y = tmp_y
 
             clf.fit(X,Y)
 
@@ -321,6 +377,14 @@ if __name__ == "__main__":
                 results[(truth,prediction)] += 1
 
 
+
+            # print("------------------------------------------------------------------")
+
+        #normalize
+        total = np.sum(results)
+        results /= total
+        np.set_printoptions(precision=2)
+        print(np.sum(results))
         print(results)
         # firstHalf = dataFromRange(0, 800., data)
         # secondHalf = dataFromRange(801, 1020, data)
