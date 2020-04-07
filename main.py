@@ -245,6 +245,8 @@ if __name__ == "__main__":
         print("Using input meeting set.")
     else:
         print("Using default meeting set.")
+
+    
         
     searchString = "./**/" + searchString + "*"
     print("Searching for "+ searchString)
@@ -330,7 +332,7 @@ if __name__ == "__main__":
 
             clf = svm.SVC(decision_function_shape='ovo')
             # clf = svm.LinearSVC()
-            f_fnc = feature.averageOn # feature.numberOfOccurances # 
+            f_fnc = feature.variabilityOfSignal # feature.averageOn # feature.numberOfOccurances # 
 
             #SVM fit will forget everything it knew, so you have to average the features from all the sets for training and testing
             X = []
