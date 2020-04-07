@@ -83,7 +83,6 @@ def reformatData(allData, subType=None):
     excludedTypes = [NO_COMM_HEAD, OFF_CAMERA, SIT]
 
     for dataset in allData:
-        print(len(ret))
         for d in dataset:
             ts = d.get(START_TIME)
             tf = d.get(END_TIME)
@@ -229,200 +228,202 @@ def printDataDescription(uid, allData):
             print("         {} has {} entries".format(key, val))
 
 if __name__ == "__main__":
-    users = dict()
-    users['A'] = []
-    users['B'] = []
-    users['C'] = []
-    users['D'] = []
 
-    NUM_USERS = len(users.keys())
-    mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
-    mapIDToLetter = {0:'A', 1:'B', 2:'C', 3:'D'}
 
-    searchString = "ES2009" # ES2008 and ES2009 a-c meetings all have relevent data
+    searchStrings = ["ES2009", "ES2008"] # and ES2009 a-c meetings all have relevent data
     if len(sys.argv) > 1:
-        searchString = sys.argv[1]
+        searchStrings = [sys.argv[1]]
         print("Using input meeting set.")
     else:
         print("Using default meeting set.")
 
-    
-        
-    searchString = "./**/" + searchString + "*"
-    print("Searching for "+ searchString)
-    allInstances = glob.glob(searchString, recursive=True)
-    for i in allInstances:
-        uid = parseForUser(i)
-        if (uid in users):
-            users[uid].append(i)
+    for searchString in searchStrings:
+        users = dict()
+        users['A'] = []
+        users['B'] = []
+        users['C'] = []
+        users['D'] = []
+
+        NUM_USERS = len(users.keys())
+        mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
+        mapIDToLetter = {0:'A', 1:'B', 2:'C', 3:'D'}
+            
+        searchString = "./**/" + searchString + "*"
+        print("Searching for "+ searchString)
+        allInstances = glob.glob(searchString, recursive=True)
+        for i in allInstances:
+            uid = parseForUser(i)
+            if (uid in users):
+                users[uid].append(i)
+            else:
+                pass
+                # users[uid] = [i]
+
+        if (len(users.keys()) == 0):
+            print("ERROR: No data read in.")
+            embed()
         else:
-            pass
-            # users[uid] = [i]
+            '''
+            Signals we want:
+                1) Talking duration
+                2) Movement
+                3) Head movement
 
-    if (len(users.keys()) == 0):
-        print("ERROR: No data read in.")
-        embed()
-    else:
-        '''
-        Signals we want:
-            1) Talking duration
-            2) Movement
-            3) Head movement
+            What we want from each signal
+                1) duration of each "color"
+                2) connections between signals (talking into head nod)
+            '''
+            plt.figure(0)
+            idx = 1
 
-        What we want from each signal
-            1) duration of each "color"
-            2) connections between signals (talking into head nod)
-        '''
-        plt.figure(0)
-        idx = 1
+            data = dict()
+            for uid in users:
+                data[uid] = aggregateDataForUser(uid)
+                # printDataDescription(uid, data[uid])
 
-        data = dict()
-        for uid in users:
-            data[uid] = aggregateDataForUser(uid)
-            printDataDescription(uid, data[uid])
+            # Plot the profiles of each users
+            # embed()
+            PLOT = False
+            if PLOT:
+                fig, ax = plt.subplots(len(data.keys()))
+                plotIdx = 0
+                for uid in data.keys():
+                    xs, ys, labels = plotTimespansAsBinary(data[uid])
+                    numPlots = len(xs)
+                    for j in range(len(xs)):
+                        ax[plotIdx].scatter(xs[j],ys[j])
 
-        # Plot the profiles of each users
-        # embed()
-        PLOT = False
-        if PLOT:
-            fig, ax = plt.subplots(len(data.keys()))
-            plotIdx = 0
-            for uid in data.keys():
-                xs, ys, labels = plotTimespansAsBinary(data[uid])
-                numPlots = len(xs)
-                for j in range(len(xs)):
-                    ax[plotIdx].scatter(xs[j],ys[j])
+                    if (plotIdx == 0):
+                        ax[plotIdx].legend(labels)
 
-                if (plotIdx == 0):
-                    ax[plotIdx].legend(labels)
+                    plotIdx += 1
+                fig.suptitle("Binary Data Streams for Each User.")
+                plt.show()
 
-                plotIdx += 1
-            fig.suptitle("Binary Data Streams for Each User.")
-            plt.show()
+            
+            # Break up data into a bunch of snippets
+            meetingDuration = data['A'][WORDS][-1][1] # End time of last sample
+            numSnippets = 8
+            trainSize = int(np.floor(0.75 * numSnippets))
+            testSize = numSnippets - trainSize
+            results = np.zeros((NUM_USERS,NUM_USERS))
+            
+            numRuns = 100
+            for i in range(numRuns):
+                snippets = []
+                t0 = 0
+                tf = None
+                for i in range(numSnippets):
+                    tf = (meetingDuration / numSnippets) * (i+1)
+                    snippets.append(dataFromRange(t0, tf, data))
+                    t0 = tf
 
-        
-        # Break up data into a bunch of snippets
-        meetingDuration = data['A'][WORDS][-1][1] # End time of last sample
-        numSnippets = 8
-        trainSize = int(np.floor(0.75 * numSnippets))
-        testSize = numSnippets - trainSize
-        results = np.zeros((NUM_USERS,NUM_USERS))
-        
-        numRuns = 100
-        for i in range(numRuns):
-            snippets = []
-            t0 = 0
-            tf = None
-            for i in range(numSnippets):
-                tf = (meetingDuration / numSnippets) * (i+1)
-                snippets.append(dataFromRange(t0, tf, data))
-                t0 = tf
+                trainingSet = []
+                testingSet = []
 
-            trainingSet = []
-            testingSet = []
+                for i in range(trainSize):
+                    idx = random.randint(0, len(snippets) - 1)
+                    selected = snippets[idx]
+                    trainingSet.append(selected)
+                    # print("Training set got snippet from %f to %f" % (selected['A'][WORDS][0][0], selected['A'][WORDS][-1][1]))
+                    snippets.remove(selected)
 
-            for i in range(trainSize):
-                idx = random.randint(0, len(snippets) - 1)
-                selected = snippets[idx]
-                trainingSet.append(selected)
-                # print("Training set got snippet from %f to %f" % (selected['A'][WORDS][0][0], selected['A'][WORDS][-1][1]))
-                snippets.remove(selected)
+                testingSet = snippets
 
-            testingSet = snippets
+                clf = svm.SVC(decision_function_shape='ovo')
+                # clf = svm.LinearSVC()
+                f_fncs = [feature.variabilityOfSignal], feature.averageOn] # feature.numberOfOccurances # 
 
-            clf = svm.SVC(decision_function_shape='ovo')
-            # clf = svm.LinearSVC()
-            f_fnc = feature.variabilityOfSignal # feature.averageOn # feature.numberOfOccurances # 
+                #SVM fit will forget everything it knew, so you have to average the features from all the sets for training and testing
+                X = []
+                Y = []
+                for snippet in trainingSet:
+                    for i, (k,v) in enumerate(snippet.items()):
+                        X.append(feature.extractFeature(v, f_fncs))
+                        Y.append(mapLetterToID[k])
 
-            #SVM fit will forget everything it knew, so you have to average the features from all the sets for training and testing
-            X = []
-            Y = []
-            for snippet in trainingSet:
-                for i, (k,v) in enumerate(snippet.items()):
-                    X.append(feature.extractFeature(v, f_fnc))
-                    Y.append(mapLetterToID[k])
+                # embed()
+                AVERAGE_ALL = False # Average all runs so there's just one data point for each user
+                if (AVERAGE_ALL):
+                    tmp_x = []
+                    tmp_y = []
+                    d = dict()
+                    for x,y in zip(X,Y):
+                        if y in d:
+                            d[y] = map(sum, zip(d[y], x)) # elementwise sum the two lists
+                        else:
+                            d[y] = x # initialize to first set of features
+
+                    numEntries = len(X)
+                    for i, (k,v) in enumerate(d.items()):
+                        tmp_x.append([entry / float(numEntries) for entry in v])
+                        tmp_y.append(k)
+
+                    X = tmp_x
+                    Y = tmp_y
+
+                clf.fit(X,Y)
+
+                y_true = []
+                y_pred = []
+                for snippet in testingSet:
+                    for i, (k,v) in enumerate(snippet.items()):
+                        x_pred = [feature.extractFeature(v, f_fncs)]
+                        y_pred.append(clf.predict(x_pred))
+                        y_true.append(k)
+
+                # y_pred = [mapIDToLetter[entry[0]] for entry in y_pred]
+                y_true = [mapLetterToID[entry] for entry in y_true]
+
+                for truth, prediction in zip(y_true, y_pred):
+                    results[(truth,prediction)] += 1
+
+
+
+                # print("------------------------------------------------------------------")
+
+            #normalize
+            total = np.sum(results)
+            results /= total
+            np.set_printoptions(precision=2)
+            print(searchString)
+            print(results)
+            print("--------------------------------------------------------------------------------------")
+            # firstHalf = dataFromRange(0, 800., data)
+            # secondHalf = dataFromRange(801, 1020, data)
+            # mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
+            # X = []
+            # Y = []
+            # for i, (k,v) in enumerate(firstHalf.items()):
+            #     allData = v
+            #     features = feature.extractFeature(allData, feature.averageOn)
+            #     print("Features for {} : {}".format(k,features))
+            #     X.append(features)
+            #     Y.append(mapLetterToID[k])
+
+            # clf = svm.SVC(decision_function_shape='ovo')
+            # clf.fit(X,Y)
+
+            # x_pred = []
+            # y_pred = None
+            # for i, (k,v) in enumerate(secondHalf.items()):
+            #     allData = v
+            #     features = feature.extractFeature(allData, feature.averageOn)
+            #     x_pred.append(features)
+            # y_pred = clf.predict(x_pred)
 
             # embed()
-            AVERAGE_ALL = False # Average all runs so there's just one data point for each user
-            if (AVERAGE_ALL):
-                tmp_x = []
-                tmp_y = []
-                d = dict()
-                for x,y in zip(X,Y):
-                    if y in d:
-                        d[y] = map(sum, zip(d[y], x)) # elementwise sum the two lists
-                    else:
-                        d[y] = x # initialize to first set of features
 
-                numEntries = len(X)
-                for i, (k,v) in enumerate(d.items()):
-                    tmp_x.append([entry / float(numEntries) for entry in v])
-                    tmp_y.append(k)
 
-                X = tmp_x
-                Y = tmp_y
+            # # Example of how to parse a file
+            # fn = users["A"][0]
+            # root = ET.parse(fn).getroot()
 
-            clf.fit(X,Y)
-
-            y_true = []
-            y_pred = []
-            for snippet in testingSet:
-                for i, (k,v) in enumerate(snippet.items()):
-                    x_pred = [feature.extractFeature(v, f_fnc)]
-                    y_pred.append(clf.predict(x_pred))
-                    y_true.append(k)
-
-            # y_pred = [mapIDToLetter[entry[0]] for entry in y_pred]
-            y_true = [mapLetterToID[entry] for entry in y_true]
-
-            for truth, prediction in zip(y_true, y_pred):
-                results[(truth,prediction)] += 1
+            # # print the starttime for all the words of user A in the file
+            # for entry in root.findall("w"):
+            #     print(entry.get(START_TIME))
 
 
 
-            # print("------------------------------------------------------------------")
-
-        #normalize
-        total = np.sum(results)
-        results /= total
-        np.set_printoptions(precision=2)
-        print(np.sum(results))
-        print(results)
-        # firstHalf = dataFromRange(0, 800., data)
-        # secondHalf = dataFromRange(801, 1020, data)
-        # mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
-        # X = []
-        # Y = []
-        # for i, (k,v) in enumerate(firstHalf.items()):
-        #     allData = v
-        #     features = feature.extractFeature(allData, feature.averageOn)
-        #     print("Features for {} : {}".format(k,features))
-        #     X.append(features)
-        #     Y.append(mapLetterToID[k])
-
-        # clf = svm.SVC(decision_function_shape='ovo')
-        # clf.fit(X,Y)
-
-        # x_pred = []
-        # y_pred = None
-        # for i, (k,v) in enumerate(secondHalf.items()):
-        #     allData = v
-        #     features = feature.extractFeature(allData, feature.averageOn)
-        #     x_pred.append(features)
-        # y_pred = clf.predict(x_pred)
-
-        # embed()
-
-
-        # # Example of how to parse a file
-        # fn = users["A"][0]
-        # root = ET.parse(fn).getroot()
-
-        # # print the starttime for all the words of user A in the file
-        # for entry in root.findall("w"):
-        #     print(entry.get(START_TIME))
-
-
-
-        # plt.plot(xs,ys)
-        # plt.show()
+            # plt.plot(xs,ys)
+            # plt.show()

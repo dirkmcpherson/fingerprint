@@ -1,12 +1,12 @@
 # Fdb version 3
-["bibtex fingerprint"] 1586268284 "fingerprint.aux" "fingerprint.bbl" "fingerprint" 1586269640
+["bibtex fingerprint"] 1586268284 "fingerprint.aux" "fingerprint.bbl" "fingerprint" 1586270242
   "/usr/local/texlive/2019/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
   "fingerprint.aux" 1586269533 2603 506321fcf3170ded4edc0dd9a45b30ac "pdflatex"
   "references.bib" 1585931992 5030 fbb9e4413a73c485c27ef0d5b15d4fd6 ""
   (generated)
-  "fingerprint.bbl"
   "fingerprint.blg"
-["pdflatex"] 1586269532 "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.tex" "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.pdf" "fingerprint" 1586269640
+  "fingerprint.bbl"
+["pdflatex"] 1586269532 "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.tex" "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.pdf" "fingerprint" 1586270242
   "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.aux" 1586269533 2603 506321fcf3170ded4edc0dd9a45b30ac ""
   "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.tex" 1586269639 15030 f8d4c230528b9a3dfdd7d200069d2335 ""
   "/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
@@ -69,9 +69,9 @@
   "fingerprint.out" 1586269533 552 5a20e2835f7571bfe9d890aed6705c0d "pdflatex"
   "fingerprint.tex" 1586269639 15030 f8d4c230528b9a3dfdd7d200069d2335 ""
   (generated)
-  "fingerprint.log"
-  "fingerprint.aux"
   "fingerprint.out"
+  "fingerprint.aux"
+  "fingerprint.log"
   "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.pdf"
   "fingerprint.pdf"
   "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.log"

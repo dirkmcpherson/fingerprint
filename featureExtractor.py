@@ -38,9 +38,9 @@ def variabilityOfSignal(data):
 
 
 # apply an feature extract to all streams of a user
-def extractFeature(allData, feature_fnc):
+def extractFeature(allData, feature_fncs):
     features = []
     for i, (k,v) in enumerate(allData.items()):
-        features.append(feature_fnc(v))
+        [features.append(feature_fnc(v)) for feature_fnc in feature_fncs]
 
     return features
