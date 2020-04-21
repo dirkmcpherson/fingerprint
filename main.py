@@ -227,16 +227,19 @@ def printDataDescription(uid, allData):
         for i, (key, val) in enumerate(types.items()):
             print("         {} has {} entries".format(key, val))
 
+def run_experiment(config):
+
 if __name__ == "__main__":
 
 
-    searchStrings = ["ES2009", "ES2008"] # and ES2009 a-c meetings all have relevent data
+    searchStrings = ["ES2009", "ES2008", "IS1008", "IS1009", "IS1003", "IS1004", "IS1005", "IS1006"] # and ES2009 a-c meetings all have relevent data
     if len(sys.argv) > 1:
         searchStrings = [sys.argv[1]]
         print("Using input meeting set.")
     else:
         print("Using default meeting set.")
 
+    Fscores = []
     for searchString in searchStrings:
         users = dict()
         users['A'] = []
@@ -332,7 +335,7 @@ if __name__ == "__main__":
 
                 clf = svm.SVC(decision_function_shape='ovo')
                 # clf = svm.LinearSVC()
-                f_fncs = [feature.variabilityOfSignal], feature.averageOn] # feature.numberOfOccurances # 
+                f_fncs = [feature.variabilityOfSignal, feature.averageOn] # feature.numberOfOccurances # 
 
                 #SVM fit will forget everything it knew, so you have to average the features from all the sets for training and testing
                 X = []
@@ -378,17 +381,29 @@ if __name__ == "__main__":
                 for truth, prediction in zip(y_true, y_pred):
                     results[(truth,prediction)] += 1
 
-
-
                 # print("------------------------------------------------------------------")
 
             #normalize
             total = np.sum(results)
-            results /= total
+            # results /= total
             np.set_printoptions(precision=2)
             print(searchString)
             print(results)
+
+            true_positive = np.sum(np.diag(results) )
+            false_positive = total - true_positive
+            false_negatives = false_positive # double-check: a row is a single true-positive entry and 3 false-positive entries (for other rows' IDs). A column is a single true-positive and 3 false-negative entries for the true-positive ID.
+
+
+            precision = true_positive / (true_positive + false_positive)
+            recall = true_positive / (true_positive + false_negatives)
+
+            f_score = 2 * (precision * recall) / (precision + recall)
+            Fscores.append(f_score)
             print("--------------------------------------------------------------------------------------")
+
+    print(Fscores)
+    print("Mean f-score ", np.mean(Fscores))
             # firstHalf = dataFromRange(0, 800., data)
             # secondHalf = dataFromRange(801, 1020, data)
             # mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
