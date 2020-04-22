@@ -12,7 +12,8 @@ def averageOn(data):
         if (d[2] != NO_SIGNAL):
             timeOn += d[1] - d[0]
 
-    return (timeOn / duration)
+    avgOn = timeOn / duration
+    return avgOn
 
 def numberOfOccurances(data):
     num = 0
@@ -42,5 +43,6 @@ def extractFeature(allData, feature_fncs):
     features = []
     for i, (k,v) in enumerate(allData.items()):
         [features.append(feature_fnc(v)) for feature_fnc in feature_fncs]
+        
 
     return features
