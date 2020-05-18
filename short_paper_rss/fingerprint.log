@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  7 APR 2020 10:25
+This is pdfTeX, Version 3.14159265-2.6-1.40.20 (TeX Live 2019) (preloaded format=pdflatex 2019.5.8)  18 MAY 2020 19:58
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -354,11 +354,14 @@ Underfull \hbox (badness 10000) in paragraph at lines 32--34
 
  []
 
+
+Underfull \vbox (badness 4859) has occurred while \output is active []
+
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <7> on input line 80.
 LaTeX Font Info:    External font `cmex10' loaded for size
 (Font)              <5> on input line 80.
-[1{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
+ [1{/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 ] (/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.bbl)
@@ -392,7 +395,7 @@ Here is how much of TeX's memory you used:
  1141 hyphenation exceptions out of 8191
  28i,8n,28p,1546b,310s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2019/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on /Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.pdf (2 pages, 88820 bytes).
+Output written on /Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.pdf (2 pages, 88741 bytes).
 PDF statistics:
  111 PDF objects out of 1000 (max. 8388607)
  99 compressed objects within 1 object stream

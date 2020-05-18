@@ -16,6 +16,7 @@ from matplotlib import pyplot as plt
 import featureExtractor as feature
 # Tag name constants in separate file
 from TagNames import *
+from config import *
 
 DEBUG=True
 
@@ -207,6 +208,10 @@ class fancyExperiment():
                         subset.insert(0, (start_time, tf, entry[2]) ) 
                     elif (t0 < end_time and tf > end_time):
                         subset.append( (t0, end_time, entry[2]) ) # fill in with an entry that goes between the time periods with the signaltype
+                # If there's no data, make an entry indicating so
+                if (len(subset) == 0):
+                    # print("No data for {} {} from {} to {}".format(key, dataTypeName, start_time, end_time))
+                    subset.append((start_time, end_time, NO_SIGNAL))
                 dataTypes[dataTypeName] = subset
             ret[key] = dataTypes
 
@@ -239,9 +244,8 @@ class fancyExperiment():
         #     print("Using default meeting set.")
 
         Fscores = []
-        true_positives = []
-        false_positives = []
         activity_scores = [] # activity in each snippet
+        tp_fp_tn_fn = []
         for searchString in searchStrings:
             self.users = dict()
             self.users['A'] = []
@@ -292,22 +296,29 @@ class fancyExperiment():
 
                 
                 # Break up data into a bunch of snippets
-                meetingDuration = data['A'][WORDS][-1][1] # End time of last sample
-                numSnippets = self.config['snippet_size']
-                trainSize = self.config['test_ratio']
-                testSize = numSnippets - trainSize
+                meetingDuration = np.max([data[UID][WORDS][-1][1] for UID in ['A','B','C','D']]) # End time of last time someone speaks TODO: improve
+                snippetDuration = self.config['snippet_duration']
+                test_ratio = self.config['test_ratio']
+
+                print("DURATION: ", meetingDuration)
+                shortestMeeting = 1764. # hardcoded fact
+                leastSnippets = int(np.floor(shortestMeeting/snippetDuration))
+
                 results = np.zeros((NUM_USERS,NUM_USERS))
                 
                 numRuns = self.config["num_runs"]
                 for i in range(numRuns):
                     snippets = []
                     t0 = 0
-                    tf = None
-                    for i in range(numSnippets):
-                        tf = (meetingDuration / numSnippets) * (i+1)
+                    tf = snippetDuration
+                    while tf <= meetingDuration:
                         snippets.append(self.dataFromRange(t0, tf, data))
                         t0 = tf
+                        tf += snippetDuration
 
+
+                    testSize = int(np.floor(test_ratio * leastSnippets))
+                    trainSize = leastSnippets - testSize
                     trainingSet = []
                     testingSet = []
 
@@ -315,10 +326,15 @@ class fancyExperiment():
                         idx = random.randint(0, len(snippets) - 1)
                         selected = snippets[idx]
                         trainingSet.append(selected)
-                        # print("Training set got snippet from %f to %f" % (selected['A'][WORDS][0][0], selected['A'][WORDS][-1][1]))
                         snippets.remove(selected)
 
-                    testingSet = snippets
+                    for i in range(testSize):
+                        idx = random.randint(0, len(snippets) - 1)
+                        selected = snippets[idx]
+                        testingSet.append(selected)
+                        snippets.remove(selected)
+
+                    # print("Num snippets in test:train {}:{}".format(len(testingSet), len(trainingSet)))
 
                     # Check activity on the snippets
                     for snp in snippets:
@@ -381,26 +397,43 @@ class fancyExperiment():
                 total = np.sum(results)
                 # results /= total
                 np.set_printoptions(precision=2)
-                # print(searchString)
-                # print(results)
 
-                true_positive = np.sum(np.diag(results) )
-                false_positive = total - true_positive
-                false_negatives = false_positive # double-check: a row is a single true-positive entry and 3 false-positive entries (for other rows' IDs). A column is a single true-positive and 3 false-negative entries for the true-positive ID.
+                #---- Compute precision and recall ----#
 
-                true_positives.append(true_positive)
-                false_positives.append(false_positive)
+                # Each class has true positives in its diagnal slot, false negatives in its row, and false positives in its column
+                # true_positive = np.sum(np.diag(results))
 
-                precision = true_positive / (true_positive + false_positive)
-                recall = true_positive / (true_positive + false_negatives)
+                for trueID in [0,1,2,3]:
+                    tp = 0
+                    fp = 0
+                    tn = 0
+                    fn = 0
+                    for row in range(len(results)):
+                        for col in range(len(results[0])):
+                            if row == trueID and col == trueID:
+                                tp = results[(row, col)]
+                            elif row == trueID and col != trueID:
+                                fn += results[(row, col)]
+                            elif row != trueID and col == trueID:
+                                fp += results[(row, col)]
+                            else:
+                                tn += results[(row, col)]
 
-                f_score = 2 * (precision * recall) / (precision + recall)
-                Fscores.append(f_score)
-                # print("--------------------------------------------------------------------------------------")
+
+                    tp_fp_tn_fn.append((tp, fp, tn, fn))
+
+                    precision = tp / (tp + fp)
+                    recall = tp / (tp + fn)
+
+                    # embed()
+
+                    f_score = 2 * (precision * recall) / (precision + recall)
+                    Fscores.append(f_score)
+                #--------------------------------------#
 
         print(Fscores)
         print("Mean f-score ", np.mean(Fscores))
-        return Fscores, true_positives, false_positives, activity_scores
+        return Fscores, tp_fp_tn_fn, activity_scores
 
     def plot(self, data):
         if self.config['plot']:
@@ -461,7 +494,8 @@ if __name__ == "__main__":
     exp = fancyExperiment()
 
 
-    snippet_sizes = [i for i in range(4, 16, 2)]
+    snippet_durations = [20, 30] #[i for i in range(5, 60, 5)]
+    print(snippet_durations)
     f_scores = []
     activity = []
 
@@ -475,64 +509,102 @@ if __name__ == "__main__":
         # fs = []
         # for snpsz in snippet_sizes:
     feature_functions = [[feature.variabilityOfSignal], [feature.averageOn], [feature.variabilityOfSignal, feature.averageOn]]
-    snpsz = 12
 
 
     idx = 0
+    fs = []
+    tps_fps_tns_fns = []
+
     roc = []
     for fncs in feature_functions:
-        config = dict()
-        config['plot'] = False
-        config['snippet_size'] = snpsz
-        config['test_ratio'] = int(np.floor(0.75 * snpsz))
-        config['feature_functions'] = fncs # [feature.variabilityOfSignal, feature.averageOn]
-        config["num_runs"] = 50 # how many times k-fold training/testing is done
-        config["file_names"] = ["ES2009", "ES2008", "IS1008", "IS1009", "IS1003", "IS1004", "IS1005", "IS1006"]
+        curve = []
+        # fncs = [feature.variabilityOfSignal, feature.averageOn]
+        for duration in snippet_durations:
+            config = dict()
+            config['plot'] = False
+            config['snippet_duration'] = duration
+            config['test_ratio'] = 0.25
+            config['feature_functions'] = fncs #[feature.variabilityOfSignal, feature.averageOn] # fncs # 
+            config["num_runs"] = 5 # how many times k-fold training/testing is done
+            config["file_names"] = ["ES2009", "ES2008", "IS1008", "IS1009", "IS1003", "IS1004", "IS1005", "IS1006"]
 
-        f, tp, fp, act = exp.run_experiment(config)
+            f, tp_fp_tn_fn, act = exp.run_experiment(config)
 
+            # total = sum(fp) + sum(tp)
+            # curve.append((duration, sum(fp)/total, sum(tp)/total))
+            # embed()
+            fp_vs_tp = [(entry[1] / sum(entry), entry[0] / sum(entry)) for entry in tp_fp_tn_fn]
+            # print(fp_vs_tp)
+            curve.append(fp_vs_tp)
 
-        total = sum(fp) + sum(tp)
-        roc.append((sum(fp)/total, sum(tp)/total))
-
-        activity.extend(act)    
-        f_scores.extend(f)
-        # data.append(list(zip(snippet_sizes, fs)))
-        # for x, ylist in zip(snippet_sizes, f_scores):
-        #     [xs.append(x) for y in ylist]
-        #     ys.extend(ylist)
+            activity.extend(act)    
+            f_scores.extend(f)
+            fs.append(f)
+            tps_fps_tns_fns.append(tp_fp_tn_fn)
+        roc.append(curve)
 
     print("Final FScores: ", (f_scores))
 
-    for pair in roc:
-        plt.scatter(pair[0], pair[1])
-    plt.legend(["signalVar","avgOn", "avgOn+signalVar"])
-    plt.xlabel("False Positives")
+# -------------------------------------#
+    # reformat roc curve data
+    # embed()
+    allvals = []
+    for variant in roc:
+        variant.sort(key=lambda x: x[0])
+        tp = []
+        fp = []
+        for snippetDuration in variant:
+            fp.append(np.mean([entry[0] for entry in snippetDuration]))
+            tp.append(np.mean([entry[1] for entry in snippetDuration]))
+            # fp.extend([entry[0] for entry in snippetDuration])
+            # tp.extend([entry[1] for entry in snippetDuration])
+
+        for i in range(len(tp)):
+            print("{:1.2f}, {:1.2f}".format(fp[i], tp[i]))
+        
+        allvals.extend(tp)
+        allvals.extend(fp)
+        plt.scatter(fp,tp)
+
+    # plt.scatter([entry[0] for entry in roc], [entry[1] for entry in roc])
+    highestVal = max(allvals)
+    plt.plot(np.linspace(0,highestVal), np.linspace(0,highestVal), '--')
+
     plt.ylabel("True Positives")
-    plt.show()
+    plt.xlabel("False Positives")
+    # plt.legend(["std", "avgOn+signalVar"])
+    plt.legend(["signalVar","avgOn", "avgOn+signalVar", "std"])
 
-    plt.hist(activity, bins = [.01*i for i in range(101)])
-    plt.title("Histogram of signal percentage-on in each snippet")
-    plt.xlabel("Signal on %")
-    plt.ylabel("# of instance")
-    plt.show()
+# -------------------------------------#
+    # for pair in roc:
+    #     plt.scatter(pair[0], pair[1])
+    # plt.legend(["signalVar","avgOn", "avgOn+signalVar"])
+    # plt.xlabel("False Positives")
+    # plt.ylabel("True Positives")
+    # plt.show()
 
-    # data has numExperiments zips of (snippet_size, F_score_on_each_file)
+# -------------------------------------#
+    # plt.hist(activity, bins = [.01*i for i in range(101)])
+    # plt.title("Histogram of signal percentage-on in each snippet")
+    # plt.xlabel("Signal on %")
+    # plt.ylabel("# of instance")
+    # plt.show()
+
+# -------------------------------------#
     # color each file respectively 
     # import matplotlib
     # numColors = len(config["file_names"])
     # colors_hsv = [( i * (1./numColors) ,1.,0.8) for i in range(numColors)]
     # colors_rgb = [matplotlib.colors.hsv_to_rgb(c) for c in colors_hsv]
 
-    # fig = plt.figure()
+    # # fig = plt.figure()
 
     # for i in range(numColors):
     #     x = []
     #     y = []
-    #     for zp in data:
-    #         for snpsz, fscores in zp:
-    #             x.append(snpsz)
-    #             y.append(fscores[i])
+    #     for f_score in fs:
+    #         x.append(snippet_durations[i])
+    #         y.append(f_score[i])
     #     print(x,y)
     #     plt.scatter(x,y,c=[colors_rgb[i]])
 
@@ -540,5 +612,5 @@ if __name__ == "__main__":
     # plt.xlabel("Snippets per meeting")
     # plt.ylabel("Fscore")
     plt.show()
-
+    # embed()
     
