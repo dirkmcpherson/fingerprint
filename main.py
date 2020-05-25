@@ -109,18 +109,31 @@ class fancyExperiment():
 
         # No go through and reset the times so the set of meetings is one continuous data stream #TODO: Inefficient
         first = ret[0]
-        entryIdx = 1
-        for i in range(len(ret) - 2):
-            second = ret[entryIdx]
-
+        time_offset = 0.
+        tmp = []
+        for entry in ret:
+            second = entry
             if (second[0] < first[1]):
-                t = first[1] # add the end time of the previous range to the entry being updated
-                ret[entryIdx] = (t+second[0], t+second[1], second[2])
+                time_offset += first[1]
 
+            tmp.append((entry[0]+time_offset, entry[1]+time_offset, entry[2]))
             first = second
-            entryIdx += 1
 
+        # entryIdx = 1
+        # for i in range(len(ret) - 2):
+        #     second = ret[entryIdx]
 
+        #     if (second[0] < first[1]):
+        #         embed()
+        #         time_offset += first[1] # Just make them sequential
+        #         t = first[1] # add the end time of the previous range to the entry being updated
+        #         ret[entryIdx] = (t+second[0], t+second[1], second[2])
+
+        #     first = second
+        #     entryIdx += 1
+
+        ret = tmp
+        # embed()
         return ret
 
     # Format all the data for a user as ordered tuples and put it in a dictionary by type
@@ -137,7 +150,7 @@ class fancyExperiment():
         # embed()
         # return
 
-        # Words neesd to be further post processed because it does not include any "no_signal" entries. 
+        # Words needs to be further post processed because it does not include any "no_signal" entries. 
         # Go through and fill in all temporal gaps with NO_SIGNAL. Change existing signals to SPEECH
         tmp = []
         minT = head[0][0]
@@ -191,9 +204,10 @@ class fancyExperiment():
             # return {WORDS:words, MOVEMENT: movement}
             # return {WORDS:words}
 
+    # Extract all data occurring between a start time and an end time.
     def dataFromRange(self, start_time, end_time, allDataAllUsers):
         ret = dict()
-        for i, (key, allData) in enumerate(allDataAllUsers.items()):
+        for i, (uid, allData) in enumerate(allDataAllUsers.items()):
             # go through and pluck out data between t0 and tf
             dataTypes = dict()
             for i, (dataTypeName, val) in enumerate(allData.items()):
@@ -213,7 +227,7 @@ class fancyExperiment():
                     # print("No data for {} {} from {} to {}".format(key, dataTypeName, start_time, end_time))
                     subset.append((start_time, end_time, NO_SIGNAL))
                 dataTypes[dataTypeName] = subset
-            ret[key] = dataTypes
+            ret[uid] = dataTypes
 
         return ret
 
@@ -236,17 +250,12 @@ class fancyExperiment():
 
     def run_experiment(self, config):
         self.config = config
-        searchStrings = self.config["file_names"] # and ES2009 a-c meetings all have relevent data
-        # if len(sys.argv) > 1:
-        #     searchStrings = [sys.argv[1]]
-        #     print("Using input meeting set.")
-        # else:
-        #     print("Using default meeting set.")
+        filenames = self.config["file_names"] # and ES2009 a-c meetings all have relevent data
 
         Fscores = []
         activity_scores = [] # activity in each snippet
         tp_fp_tn_fn = []
-        for searchString in searchStrings:
+        for fn in filenames:
             self.users = dict()
             self.users['A'] = []
             self.users['B'] = []
@@ -257,9 +266,9 @@ class fancyExperiment():
             mapLetterToID = {'A':0, 'B':1, 'C':2, 'D':3}
             mapIDToLetter = {0:'A', 1:'B', 2:'C', 3:'D'}
                 
-            searchString = "./**/" + searchString + "*"
-            print("Searching for "+ searchString)
-            allInstances = glob.glob(searchString, recursive=True)
+            fn = "./**/" + fn + "*"
+            print("Searching for "+ fn)
+            allInstances = glob.glob(fn, recursive=True)
             for i in allInstances:
                 uid = self.parseforuser(i)
                 if (uid in self.users):
@@ -292,7 +301,7 @@ class fancyExperiment():
 
                 # Plot the profiles of each users
                 # embed()
-                self.plot(data)
+                # self.plot(data)
 
                 
                 # Break up data into a bunch of snippets
@@ -301,7 +310,7 @@ class fancyExperiment():
                 test_ratio = self.config['test_ratio']
 
                 print("DURATION: ", meetingDuration)
-                shortestMeeting = 1764. # hardcoded fact
+                shortestMeeting = 5279 # hardcoded fact
                 leastSnippets = int(np.floor(shortestMeeting/snippetDuration))
 
                 results = np.zeros((NUM_USERS,NUM_USERS))
@@ -315,7 +324,6 @@ class fancyExperiment():
                         snippets.append(self.dataFromRange(t0, tf, data))
                         t0 = tf
                         tf += snippetDuration
-
 
                     testSize = int(np.floor(test_ratio * leastSnippets))
                     trainSize = leastSnippets - testSize
@@ -356,24 +364,24 @@ class fancyExperiment():
                             Y.append(mapLetterToID[k])
 
                     # embed()
-                    AVERAGE_ALL = False # Average all runs so there's just one data point for each user
-                    if (AVERAGE_ALL):
-                        tmp_x = []
-                        tmp_y = []
-                        d = dict()
-                        for x,y in zip(X,Y):
-                            if y in d:
-                                d[y] = map(sum, zip(d[y], x)) # elementwise sum the two lists
-                            else:
-                                d[y] = x # initialize to first set of features
+                    # AVERAGE_ALL = False # Average all runs so there's just one data point for each user
+                    # if (AVERAGE_ALL):
+                    #     tmp_x = []
+                    #     tmp_y = []
+                    #     d = dict()
+                    #     for x,y in zip(X,Y):
+                    #         if y in d:
+                    #             d[y] = map(sum, zip(d[y], x)) # elementwise sum the two lists
+                    #         else:
+                    #             d[y] = x # initialize to first set of features
 
-                        numEntries = len(X)
-                        for i, (k,v) in enumerate(d.items()):
-                            tmp_x.append([entry / float(numEntries) for entry in v])
-                            tmp_y.append(k)
+                    #     numEntries = len(X)
+                    #     for i, (k,v) in enumerate(d.items()):
+                    #         tmp_x.append([entry / float(numEntries) for entry in v])
+                    #         tmp_y.append(k)
 
-                        X = tmp_x
-                        Y = tmp_y
+                    #     X = tmp_x
+                    #     Y = tmp_y
 
                     clf.fit(X,Y)
 
@@ -428,7 +436,12 @@ class fancyExperiment():
                     # embed()
 
                     f_score = 2 * (precision * recall) / (precision + recall)
-                    Fscores.append(f_score)
+                    if (np.isnan(f_score)):
+                        print("WARN: nan f-scored defaulting to 0")
+                        f_score = 0
+                        # embed()
+                    else:
+                        Fscores.append(f_score)
                 #--------------------------------------#
 
         print(Fscores)
@@ -494,9 +507,10 @@ if __name__ == "__main__":
     exp = fancyExperiment()
 
 
-    snippet_durations = [20, 30] #[i for i in range(5, 60, 5)]
+    snippet_durations = [i for i in range(1, 100, 5)] # [60] #[i for i in range(5, 60, 5)]
     print(snippet_durations)
     f_scores = []
+    accuracies = []
     activity = []
 
     xs = []
@@ -508,7 +522,32 @@ if __name__ == "__main__":
     # for i in range(numExperiments):
         # fs = []
         # for snpsz in snippet_sizes:
-    feature_functions = [[feature.variabilityOfSignal], [feature.averageOn], [feature.variabilityOfSignal, feature.averageOn]]
+    feature_functions = [[feature.variabilityOfSignal, feature.averageOn], [feature.signalConcurrency, feature.averageOn], [feature.variabilityOfSignal, feature.signalConcurrency]]
+
+    # autoconstruct strings:
+    feature_function_strings = []
+    for fncs in feature_functions:
+        label = ""
+        for f in fncs:
+            l = None
+            if (f == feature.variabilityOfSignal): 
+                l = "signalVar"
+            elif (f == feature.averageOn):
+                l = "avgOn"
+            elif (f == feature.signalConcurrency):
+                l = "conc"
+
+            if (len(label) == 0):
+                label += l
+            else:
+                label += ("+" + l)
+        feature_function_strings.append(label)
+        
+        
+
+    # feature_function_strings = ["signalVar","avgOn", "avgOn+signalVar"]
+    # feature_functions = [[feature.signalConcurrency]]
+    # feature_function_strings = ["concurrency"]
 
 
     idx = 0
@@ -518,6 +557,7 @@ if __name__ == "__main__":
     roc = []
     for fncs in feature_functions:
         curve = []
+        acc = []
         # fncs = [feature.variabilityOfSignal, feature.averageOn]
         for duration in snippet_durations:
             config = dict()
@@ -525,10 +565,17 @@ if __name__ == "__main__":
             config['snippet_duration'] = duration
             config['test_ratio'] = 0.25
             config['feature_functions'] = fncs #[feature.variabilityOfSignal, feature.averageOn] # fncs # 
-            config["num_runs"] = 5 # how many times k-fold training/testing is done
+            config["num_runs"] = 20 # how many times k-fold training/testing is done
             config["file_names"] = ["ES2009", "ES2008", "IS1008", "IS1009", "IS1003", "IS1004", "IS1005", "IS1006"]
 
-            f, tp_fp_tn_fn, act = exp.run_experiment(config)
+            f, tp_fp_tn_fn, act = exp.run_experiment(config) # tp_fp_tn_fn has one entry for each user (4) for each file (len(config["file_names"])). 
+
+            acc_sum = []
+            for u in tp_fp_tn_fn:
+                tp_tn_avg = (u[0] + u[2]) / sum(u)
+                acc_sum.append(tp_tn_avg)
+
+            acc.append(sum(acc_sum)/len(tp_fp_tn_fn))
 
             # total = sum(fp) + sum(tp)
             # curve.append((duration, sum(fp)/total, sum(tp)/total))
@@ -542,10 +589,34 @@ if __name__ == "__main__":
             fs.append(f)
             tps_fps_tns_fns.append(tp_fp_tn_fn)
         roc.append(curve)
+        accuracies.append(acc)
 
     print("Final FScores: ", (f_scores))
 
-# -------------------------------------#
+# ------------------------------------- #
+    # Plot accuracies by feature set and snippet duration
+    for trial in accuracies:
+        # each trial is a different set of features. each point in a trial is for a different snippet duration.
+        plt.plot(snippet_durations, trial)
+
+    plt.title("Classification accuracy by feature set and snippet duration. ")
+    plt.ylabel("Accuracy")
+    plt.xlabel("Snippet Durations")
+    # plt.legend(["std", "avgOn+signalVar"])
+    plt.legend(feature_function_strings)
+    plt.show()
+
+# ------------------------------------- #
+    # Bar plot of f-scores for best snippet length
+    y = [np.mean(feature_set) for feature_set in fs]
+    x = [i for i in range(len(y))]
+    plt.xticks(x, tuple(feature_function_strings))
+    plt.title("F-score by feature set for {} second snippets.".format(snippet_durations[0]))
+    plt.ylabel("F-Score")
+    plt.bar(x,y)
+    plt.show()
+
+# ------------------------------------- #
     # reformat roc curve data
     # embed()
     allvals = []

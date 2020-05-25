@@ -132,8 +132,15 @@ INPUT /usr/local/texlive/2019/texmf-dist/fonts/tfm/adobe/times/ptmr8r.tfm
 INPUT /usr/local/texlive/2019/texmf-dist/fonts/vf/adobe/times/ptmr7t.vf
 INPUT /usr/local/texlive/2019/texmf-dist/fonts/vf/adobe/times/ptmri7t.vf
 INPUT /usr/local/texlive/2019/texmf-dist/fonts/tfm/adobe/times/ptmri8r.tfm
+INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/fscore_v_feature.png
+INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/fscore_v_feature.png
+INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/fscore_v_feature.png
+INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/Acc_feature_v_duration.png
+INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/Acc_feature_v_duration.png
+INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/Acc_feature_v_duration.png
 INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.bbl
 INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.bbl
+INPUT /usr/local/texlive/2019/texmf-dist/fonts/vf/adobe/times/ptmr7t.vf
 INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.aux
 INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.out
 INPUT /Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.out

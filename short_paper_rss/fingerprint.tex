@@ -32,15 +32,13 @@
 \elaine{you need to include matthias as an author, even if he's not last author, and we need to run the paper by him before submitting}
 Why do we care? Why is it hard? Why can we do it?\\
 
-Recognizing individuals is critical to forming strong relationships. Person identification is primarily accomplished with face or voice recognition, but these modalities are sensitive to environmental conditions that make them unreliable in many industry applications. Some applications, like Amazon's Smart Speaker, can get around this with hardware design and big-data enabled machine learning, but this is not possible for many organizations and may not be a desired feature from the user's perspective. Robust voice and face recognition allow a user to be tracked across multiple contexts, but identification through interaction isn't likely to be reusable in the same way, giving the user the benefits of personalized interaction without further compromising their right to privacy. \meta{Putting this argument here makes sense given the context, but it seems weird to do it before the topic of the paper is introduced. I could add a footnote?}
+Recognizing individuals is critical to forming strong relationships. Person identification is primarily accomplished with face or voice recognition, but these modalities are sensitive to environmental conditions that make them unreliable in many industry applications. Some applications, like Amazon's Smart Speaker, can get around this with hardware design and big-data enabled machine learning, but this is not possible for many organizations and may not be a desired feature from the user's perspective. Robust voice and face recognition allow a user to be tracked across multiple contexts, but identification through interaction isn't likely to be reusable in the same way, giving the user the benefits of personalized interaction without further compromising their right to privacy.
 
 % \footnote{Some applications, like Amazon's Smart Speaker, can get around this with hardware design and big-data enabled machine learning, but this is not possible for most organizations.}. \elaine{I think there's an ethical argument to be made here as well, that identifying someone in an interaction isn't likely to translate across contexts -- which is actually a good thing.  Think about the ways in which someone might have different personas in different contexts -- it's actually good not to necessarily be able to link them.} 
 
 Some state of the art identification schemes require resource intensive neural networks for face and voice detection. Others, like gait detection, require the user's full body to be recorded for multiple striding frames \cite{liang_wang_silhouette_2003}\cite{han_individual_2006}. It's unreasonable to expect every piece of interactive technology to implement robust person identification systems given their requirements. However, most embodied piece of interactive technology can benefit from remembering previous interactions with individual users, and so a more reliable, scalable person recognition scheme is needed. 
 
-This paper attempts to implement the groundwork for an alternate identification system that can be used with any socially interactive device by utilizing the interaction itself to better recognize individuals. Prior work in open-set recognition has only used static features of the user, but a key feature of an interaction is that it includes behaviors that are embedded in time. In this work we present a novel method for doing open-set recognition on time-series data with support vector machines, and discuss how this work can be extended to address the problem of recognition through interaction as well as open-set recognition. We evaluate our system on a preexisting dataset and discuss how it could be extended in a case where the agent is able to take action. 
-
-TODO: add results and explanation
+This paper implements the groundwork for an alternate identification system that can be used with any socially interactive device by utilizing the interaction itself to better recognize individuals. Prior work in open-set recognition has only used static features of the user, but a key feature of an interaction is that it includes behaviors that are embedded in time. In this work we present a novel method for doing person recognition on time-series data with support vector machines, and discuss how this work can be extended to address the problem of recognition through interaction as well as open-set recognition. We evaluate our system on a preexisting dataset and discuss how it could be extended in a case where the agent is able to take action and elicit behavioral responses from a user. 
 
 
 % \elaine{note that this specifies what sub-part of the problem you're addressing; if you want to address a different sub-part, you'll need to phrase it differently}
@@ -68,16 +66,18 @@ TODO: add results and explanation
 
 \section{Background Related Work}
 
-All person recognition systems extract features from the target modality to run through a classifier. Face recognition \cite{tolba2006face} and voice recognition \cite{beigi2011speaker} use neural networks, spectral analysis, and template matching, as well as other techniques to identify known individuals. Perez et al. showed that social media metadata, which can be considered to be a behavioral signature \meta{Can I say this or do I need to define what this means somewhere (or am I not allowed to define things like this)}, was effective at accurately identifying individuals in closed groups of up to 10,000 people. Their accuracy was due in part to the large number of raw features available -- the meta data features could be used without processing -- but this work shows that high degrees of accuracy are possible with out of the box classifiers if an identifying set of behavioral features can be extracted. 
+All person recognition systems extract features from the target modality to run through a classifier. Face recognition \cite{tolba2006face} and voice recognition \cite{beigi2011speaker} put features through neural networks, template matching, and other other techniques to identify known individuals. The same idea can be applied to behavior, Perez et al. showed that social media metadata, which can be considered to be a behavioral signature, was effective at accurately identifying individuals in closed groups of up to 10,000 people. Their accuracy was due in part to the large number of raw features available -- the meta data features could be used without processing -- but this work shows that high degrees of accuracy are possible with out of the box classifiers if an identifying set of behavioral features can be extracted. 
 
-We also looked to open-set classification theory for hints on identifying people through their behavioral patterns. Scheirer et al. uses SVMs augmented with a measure of open-space risk to determine how a new sample should be classified\cite{scheirer_toward_2013}. Based on Scheier et al. and Bendale et al's promising results with SVMs on open-set problems \cite{bendale_towards_2015}\cite{scheirer_toward_2013}. We decided to see how far we could get with a simple multi-class SVM trained on multiple labelled snippets of interaction. We chose to ignore the possibility of unlabelled classes to begin with, and instead explored whether we could distinguish between four known participants in an ongoing interaction. 
+We also looked to open-set classification theory for hints on identifying people through their behavioral patterns. Scheirer et al. uses SVMs augmented with a measure of open-space risk to determine how a new sample should be classified\cite{scheirer_toward_2013}. Based on Scheier et al. and Bendale et al's promising results with SVMs on open-set problems \cite{bendale_towards_2015}\cite{scheirer_toward_2013}, we decided to see how far we could get with a simple multi-class SVM trained on multiple labelled snippets of interaction. We chose to ignore the possibility of unlabelled classes to begin with, and instead explored whether we could distinguish between four known participants in an ongoing interaction. 
 % TODO: Don't write a book report. Only bring things up as they relate to our formalization of the problem. (1) work on multi-class SVM and where we fit in. (2) How multi-class SVM extends to open-set recognition and applying our strategy to the formalization of that extension. 
 
 % Open set recognition is the problem of recognizing instances of classes of objects without knowing the classifications of all candidate objects. It brings the classification problem to the real world, where the objects present are dynamic and potentially novel examples are possible at any time. "It is somewhat reasonable to assume we can gather examples of the positive class, but the number and variety of 'negatives' is not well modelled"(TODO: Remove Quotes)\cite{scheirer_toward_2013}. Open set recognition has primarily been examined in computer vision object and face recognition using linear SVMs \cite{scheirer_toward_2013} \cite{bendale_towards_2015}, where its useful to introduce the concept of "open space risk" -- a metric that increases as a sample is on the correct side, but further from, the SVM boundary plane. Scheirer et al. \cite{scheirer_toward_2013} addresses this by introducing a second plane to the SVM that attempts to put a bounding on the "backside" of a classified group, and examines how this method varies in effectiveness with the openness \footnote{Where openness is a measure of how many more classes there are at test time than at training time.} of the problem. Further work is done on recognizing and categorizing novel classes \cite{bendale_towards_2015} as well as using probabilistic techniques and nonlinear SVM kernels to classify and recognize different categories \cite{scheirer_probability_2014} \cite{jain_multi-class_2014}.
 
 \subsection{Problem Formalization}
 
-We aim to identify a set of users $u_n \subseteq U$, where the number of users in the set, and so $n$, are unknown. Each user exhibits interactive behaviors that are measurable as $k$ time-series signals.
+We identify a set of users through their interaction fingerprint. A person produces measurable signals when interacting with another human or agent. These signals may come in several forms detectable through different sensor modalities -- a person might frequently nod in response to ideas from their colleague or be prone to verbosity in their explanations. We can identify individuals by classifying their temporal behaviors, which we refer to as their interaction fingerprint. A person may persist behaviors between interaction partners, and may exhibit alternate behaviors with specific partners over the course of an interaction. 
+
+As interactions are embedded in time, we examine whether a classifiable fingerprint can be taken from different durations of the interactions. In addition we look at the identification accuracy and precision of different extracted temporal features. We identify a set of users $u_n \subseteq U$, where the number of users in the set, $n$, are unknown. Each user exhibits interactive behaviors that are measurable as $k$ time-series signals.
 
 \begin{equation}
     b^k \subseteq B_n
@@ -101,52 +101,73 @@ Where each entry in $d^k$ is an extracted feature that describes an aspect of th
 
 Where $w$ is a $k*i$ (the number of time-series signals times the number of features extracted from each signal) dimensional vector and $b$ is a scalar. These values are found by training on a labelled subset of the data. 
 
-\section{Technical Approach / Methodology / Theoretical Framework}\label{formalization}
 
-We take time-series data from recorded, annotated meetings, cut it into multiple training and test samples, perform feature extraction on each sample, and train a binary SVM classifier for each pair of users. We hypothesizes that we would extract features description enough to accurately classify each person in the dataset. 
+\section{Methodology}
+We take time-series data from recorded, annotated meetings, cut it into multiple training and test samples, perform feature extraction on each sample, and train a binary SVM classifier for each pair of users. We hypothesized that we would extract interaction fingerprint descriptive enough to accurately classify each person. 
+
 
 \subsection{Data Collection - AMI Corpus}
+We used the AMI Meeting Corpus \cite{ami_corpus} to test the efficacy of our classification scheme. The AMI corpus is multi-modal dataset consisting of video and audio recordings of mock and real meetings. The AMI corpus also contains automatic and manual annotations taken over the raw recordings. Participants are assigned roles that determine their dialogue and activity within the meetings. It's worth noting that since role assignment determines behavior within a meeting, it may serve as a confounding variable. 
 
-We used the AMI Meeting Corpus \meta{citation?} to test the efficacy of our classification scheme. The AMI corpus is multi-modal dataset consisting of video and audio recordings of mock and real meetings. The AMI corpus also contains automatic and manual annotations taken over the raw recordings. Participants in the meetings are assigned roles that determine their dialogue and activity within the meetings. Due to this role assignment, the reader should be aware that we may be detecting role assignments, since they may serve as a confounding variable. 
+We evaluated our system on meetings which had been manually annotated for three modalities, leg movement, head movement, and dialogue transcripts. Each datum is associated with a timespan and may be tagged as a type when relevant (e.g. a head movement may be tagged as a 'shake', 'nod', or untagged)
 
-We evaluated our system on meetings which had manual annotations for three modalities, leg movement, head movement, and dialogue transcripts. Each datum is associated with a timespan and may be tagged as a type when relevant (e.g. a head movement may be tagged as a 'shake', 'nod', or untagged)
+\subsection{Feature Engineering}\label{feature_engineering}
+Interaction data is time-series by its nature, so in order to classify we need to extract features that represent snippets of time as single values. An alternate approach might be to use Recurrent Neural Networks to classify the time-series data without modification, but we leave that as future work. 
 
-\subsection{Feature Engineering}
-
-Interaction data is by its nature time-series data, so in order to classify we need to extract features that represent snippets of time in single values. An alternate approach might be to use RNNs to classify the time-series data without modification, but we leave that as future work. 
-
-\meta{shorthand brainstorming, needs editing}
-Signals making up $B_n$ are handled without taking the meaning of the signal into account. We want to build a system that generalizes across interaction types. Each signal in $B_n$ occurs over a time period. In a given segment of the interaction each signal will be present or absent at each timestep. Using only this information we have can produce a range of potentially useful features.
+We're interesting in building a system that generalizes across interaction types, so the signals making up $B_n$ are processed without taking their contextual meaning into account. Each signal in $B_n$ occurs over a variable time period. In a given time-step of the interaction a signal will only be either present or absent. Using this information we can classify with several features:
 
 \begin{enumerate}
-    \item Active Ratio - For what percentage of the snippet was the signal active.
-    \item Total oscillations - How many times did the signal toggle from on to off (normalized by snippet length). 
-    \item NEED a measure that connects different $b^k$s and/or catches coordinated transitions between signals. Encodable by an SVM? You could do a transition matrix (e.g. $b^0$ turned off within $epsilon$ seconds of $b^1$ turning on $x$ times in this snippet). But that's a $k^2$ on its own.
+    \item Active Ratio - For what percentage of the snippet was the signal active (on versus off).
+    \item Average Oscillations - How many times did the signal toggle from on to off (normalized by snippet duration). 
+    \item Signal Concurrency - For what percentage of the snippet are multiple signals active at the same time. 
 \end{enumerate}
 
-\section{Experimental Design}
+\meta{Explain the rationale for selecting these features more?}
 
-We selected three different meetings from the AMI corpus that had manual annotated leg movements, head movements, and dialogue for each participant. The annotations were extracted into data streams for each participants and split into ten, equal length segments. 80\% of the data was designated as training data and paired with the corresponding participant label while the remaining 20\% as testing. A scikit-learn SVM SVC one-vs-one classifier was then trained and used to classify the test set.
+% \meta{Frequency domain - connecting different signals. Spectral analysis.} \\
+% \meta{Covariance matrix - Eigenvectors / Eigenvalues and how they relate different variables to each other.}
 
-We explored the effect of segment length on classification accuracy by producing the ROC curve in figure doesn't-exist-yet. 
+\subsection{Experimental Design}
 
-We also evaluated the effectiveness of different feature sets. 
+We selected eight different meetings from the AMI corpus that had manually annotated leg movements, head movements, and dialogue for each participant. Each meeting contained four unique individuals, no individual participated in multiple meetings. The annotations were extracted into data streams for each participants and split into ten, equal length segments. 75\% of the data was designated as training data and paired with the corresponding participant label while the remaining 25\% was designated as a testing set. A scikit-learn SVM SVC one-vs-one classifier was then trained and used to classify the test set. Each participant was classified within their own meeting, and not between meetings. We performed 20-fold validation in each case. We examined how this standard SVM classifier performed with different feature sets and for different interaction sample durations. 
 
+We performed an ablation study for the hand-crafted features in section \ref{feature_engineering}. We left one feature out for each trial we ran to determine which feature had the greatest impact. We were curious whether a minimum duration of interaction was needed for accurate classifications, so each pair of features was tested for a range of sample durations between 1 and 100 seconds. The sample duration that gave the highest accuracy was used to produce an average f-score for each feature set. 
 
+\section{Results}
 
+\meta{TODO: Fill in specific values once exhaustive snippet duration experiment is done (literally takes forever...figuratively)} We found low variation between interaction sample durations. There was an increase in accuracy around the 60 second mark, but the change was not significant. We ran the the ablation f-score study using 60 seconds becuase it was nominally the best and because one-minute of interaction seems like a reasonable amount of time to interact with a person in future experiments. 
 
-\meta{SLAUNCHWISE} \\ 
-\meta{Frequency domain - connecting different signals. Spectral analysis.} \\
-\meta{Covariance matrix - Eigenvectors / Eigenvalues and how they relate different variables to each other.}
-\meta{ROC curves for each combinations}
+\begin{figure}[h]
+    \caption{Feature set vs. Average F score for all people in eight different meetings. Each person was classified within their meeting of four.}
+    \centering
+    \includegraphics[width=0.5\textwidth]{fscore_v_feature.png}
+    \label{fscore}
+\end{figure}
+
+Our ablation study (figure \ref{fscore}) showed that Signal Concurrency was the least helpful of our three features. Our measures of signal Activity and Oscillation resulted in ~10\% increase in f-score over a feature set using concurrency. \meta{Should I collect stats to get a p-value or is that not necessary here?}
+
+\begin{figure}[h]
+    \caption{Average classification accuracy by snippet duration.}
+    \centering
+    \includegraphics[width=0.5\textwidth]{Acc_feature_v_duration.png}
+    \label{acc_snippet}
+\end{figure}
+
+\section{Discussion}
+
+The results for our ablation study show why feature engineering is rarely effective. Our simplest features, Activity and Oscillation, which were taken from independent streams, performed better than Signal Concurrency, which attempted to connect activity between signal streams. It seems reasonable that better accuracy and precision can be obtained by correlating activity between behavioral signals, but our simplistic approach to describing this correlation did more harm than good. This may indicate that automatic feature generation, of the sort ANNs are good for, could result in better f-scores.
+
+We found that there was generally no meaningful difference in identification accuracy between different snippet durations above a threshold. As long as a sufficient amount of interaction is observed, an interaction fingerprint can be generated from our engineered features that allows for identification. This result does not necessarily hold for every kind of feature, its possible that individuals demonstrate identifying behaviors on the scale of minutes or entire interactions, e.g. the way a person leaves an interaction could be the signal that solidifies their identification. 
+
+\section{Future Work}
+
+The generic features we chose to classify upon were insufficient to give consistently accurate identifications. However, our negative results hint at promising research directions to pursue towards HRI identification schemes. The passive signals we used may still be useful, but we can gain additional information by using the agency inherent in our HRI systems. An agent can prompt a user for behavioral signatures rather than wait for the user to exhibit identifying behavior -- even negative responses to prompts may be distinguishing. 
+
+In addition, identifying users through elicited behaviors promotes a unique one-agent-one-human relationship. An agent's ability to trigger a particular behavior may be dependent on the parameterization or even specific hardware of the agent, making it difficult to transfer the learned identification to another agent and promoting the privacy of the user i.e. encryption through interaction. This method may also work with the reasonable person's expectation that only agents which the person has interacted with will remember them. A study should be conducted on interactive human-agent identification. 
 
 
 % for final report
 %A detailed description of your problem (with math, notation, algorithms, figures, etc.). Use footnotes to cite links to your code or videos\footnote{All developed source code for this project is available at ...}
-
-\section{Results}
-
-\section{Discussion}
 
 \bibliographystyle{plain}
 \bibliography{references}
