@@ -1,14 +1,14 @@
 # Fdb version 3
-["bibtex fingerprint"] 1590430405 "fingerprint.aux" "fingerprint.bbl" "fingerprint" 1590432417
+["bibtex fingerprint"] 1590679631 "fingerprint.aux" "fingerprint.bbl" "fingerprint" 1590679632
   "/usr/local/texlive/2019/texmf-dist/bibtex/bst/base/plain.bst" 1292289607 20613 bd3fbfa9f64872b81ac57a0dd2ed855f ""
-  "fingerprint.aux" 1590430865 3435 f1ef7e4c74c7bb53455f1c93dbdfcc2e "pdflatex"
-  "references.bib" 1589901123 5153 ecd596ca7344d6d6d81440308e6d76d1 ""
+  "fingerprint.aux" 1590679631 3879 c6e649077353f7817b90e9a6398e4034 "pdflatex"
+  "references.bib" 1590677949 7104 8b4eb186dd5a77726a3e4f8e11e33143 ""
   (generated)
   "fingerprint.bbl"
   "fingerprint.blg"
-["pdflatex"] 1590430864 "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.tex" "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.pdf" "fingerprint" 1590432417
-  "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.aux" 1590430865 3435 f1ef7e4c74c7bb53455f1c93dbdfcc2e ""
-  "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.tex" 1590432416 19842 6b2c7e2eca746089425e526bc13e35c1 ""
+["pdflatex"] 1590679631 "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.tex" "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.pdf" "fingerprint" 1590679632
+  "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.aux" 1590679631 3879 c6e649077353f7817b90e9a6398e4034 ""
+  "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.tex" 1590679630 22162 eff7ff5c73ce21f22e97791e1e867f9c ""
   "/usr/local/texlive/2019/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2019/texmf-dist/fonts/map/fontname/texfonts.map" 1511824771 3332 103109f5612ad95229751940c61aada0 ""
   "/usr/local/texlive/2019/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1136768653 2172 fd0c924230362ff848a33632ed45dc23 ""
@@ -64,16 +64,16 @@
   "/usr/local/texlive/2019/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1557342064 3277517 23507ed665b4dd9046f0f2a94bbef2be ""
   "/usr/local/texlive/2019/texmf-var/web2c/pdftex/pdflatex.fmt" 1557342086 4259635 562fc36ec496993777a6c428d8bfb811 ""
   "/usr/local/texlive/2019/texmf.cnf" 1557341546 577 d150fef99ac436ad1156e86b0892f6ef ""
-  "Acc_feature_v_duration.png" 1590353486 463487 66e9a99e669ede85aa1a73ac649132b4 ""
-  "fingerprint.aux" 1590430865 3435 f1ef7e4c74c7bb53455f1c93dbdfcc2e "pdflatex"
-  "fingerprint.bbl" 1590430405 1607 d26c16f868d20df174355b3126e98a9f "bibtex fingerprint"
-  "fingerprint.out" 1590430865 568 17831200ee3e035054bc5dc373517f2b "pdflatex"
-  "fingerprint.tex" 1590432416 19842 6b2c7e2eca746089425e526bc13e35c1 ""
+  "Acc_feature_v_duration.png" 1590509374 49453 54b07f5c848e94db4bf132db4bcf7fb3 ""
+  "fingerprint.aux" 1590679631 3879 c6e649077353f7817b90e9a6398e4034 "pdflatex"
+  "fingerprint.bbl" 1590679631 3209 e913ce5a34108375274a0eae3dbd9b6d "bibtex fingerprint"
+  "fingerprint.out" 1590679631 554 e7b29932241aa508b12d4e715bcb8976 "pdflatex"
+  "fingerprint.tex" 1590679630 22162 eff7ff5c73ce21f22e97791e1e867f9c ""
   "fscore_v_feature.png" 1590354966 22437 a1fafb0f3b3f8c8201e8cf61e889b9b1 ""
   (generated)
-  "fingerprint.out"
   "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.pdf"
-  "fingerprint.aux"
-  "fingerprint.log"
   "fingerprint.pdf"
+  "fingerprint.log"
+  "fingerprint.aux"
   "/Users/jstaley/workspace/fingerprint/short_paper_rss/fingerprint.log"
+  "fingerprint.out"
