@@ -1,8 +1,5 @@
 \begin{thebibliography}{10}
 
-\bibitem{ami_corpus}
-Welcome to the ami corpus.
-
 \bibitem{abe_analysis_2003}
 Shigeo Abe.
 \newblock Analysis of multiclass support vector machines.
@@ -44,6 +41,11 @@ Anil~K Jain, Sarat~C Dass, and Karthik Nandakumar.
 \newblock In {\em International conference on biometric authentication}, pages
   731--738. Springer, 2004.
 
+\bibitem{kilgour_ami_nodate}
+Jonathan Kilgour.
+\newblock The {AMI} {Meeting} {Corpus}.
+\newblock Publication Title: AMI Corpus.
+
 \bibitem{liang_wang_silhouette_2003}
 {Liang Wang}, {Tieniu Tan}, {Huazhong Ning}, and {Weiming Hu}.
 \newblock Silhouette analysis-based gait recognition for human identification.
@@ -60,6 +62,13 @@ Eric Martinson, Wallace Lawson, and J~Gregory Trafton.
 Omkar~M Parkhi, Andrea Vedaldi, and Andrew Zisserman.
 \newblock Deep face recognition.
 \newblock 2015.
+
+\bibitem{perez_you_2018}
+Beatrice Perez, Mirco Musolesi, and Gianluca Stringhini.
+\newblock You are your metadata: {Identification} and obfuscation of social
+  media users using metadata information.
+\newblock In {\em Twelfth {International} {AAAI} {Conference} on {Web} and
+  {Social} {Media}}, 2018.
 
 \bibitem{scheirer_toward_2013}
 W.~J. Scheirer, A.~de~Rezende Rocha, A.~Sapkota, and T.~E. Boult.
